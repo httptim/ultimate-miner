@@ -5,7 +5,7 @@
 local module_loader = require("/shared/module_loader")
 
 -- Initialize program environment
-print("Ultimate Miner v2.5.0 - Turtle")
+print("Ultimate Miner v3.0.0 - Turtle")
 print("Initializing...")
 
 local modules, env_type = module_loader.init_program("turtle")

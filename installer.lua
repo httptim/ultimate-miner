@@ -1,7 +1,7 @@
 -- Ultimate Miner Installer
 -- Automated installation script for turtle and control computer components
 
-local VERSION = "2.5.0"
+local VERSION = "3.0.0"
 local GITHUB_BASE = "https://raw.githubusercontent.com/httptim/ultimate-miner/main/"
 local GITHUB_REPO = "https://github.com/httptim/ultimate-miner"
 
@@ -51,12 +51,8 @@ local components = {
         "turtle/modules/pattern_optimizer.lua",
         "turtle/modules/performance_config.lua",
         -- Mining patterns
-        "turtle/patterns/strip.lua",
-        "turtle/patterns/branch.lua",
-        "turtle/patterns/spiral.lua",
-        "turtle/patterns/quarry.lua",
-        "turtle/patterns/tunnel3x3.lua",
-        "turtle/patterns/adaptive.lua"
+        "turtle/modules/patterns.lua",  -- All patterns in one module
+        "turtle/patterns/strip.lua"      -- Standalone strip pattern
     },
     
     -- Control computer components
@@ -68,15 +64,15 @@ local components = {
         "control/modules/commands.lua",
         "control/modules/ui.lua",
         "control/modules/tasks.lua",
+        "control/modules/monitor.lua",
+        "control/modules/config.lua",
+        -- Screens
         "control/screens/dashboard.lua",
-        -- TODO: These modules are not yet implemented
-        -- "control/modules/monitor.lua",
-        -- "control/modules/config.lua",
-        -- UI components (not yet implemented)
-        -- "control/ui/turtle_list.lua",
-        -- "control/ui/resource_manager.lua",
-        -- "control/ui/area_manager.lua",
-        -- "control/ui/settings.lua"
+        "control/screens/fleet_overview.lua",
+        "control/screens/turtle_control.lua",
+        "control/screens/fleet_commands.lua",
+        "control/screens/task_assignment.lua",
+        "control/screens/settings.lua"
     }
 }
 
