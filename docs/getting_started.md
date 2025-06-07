@@ -100,13 +100,17 @@ From the main menu:
 - ✅ Fuel monitoring
 - ✅ Movement safety checks
 - ✅ Inventory management
+- ✅ Mining operations
+- ✅ Safety systems
+- ✅ Storage integration
+- ✅ Strip mining pattern
 
 ### Coming Soon
-- 🚧 Mining operations
-- 🚧 Safety systems
 - 🚧 Network communication
 - 🚧 Fleet management
-- 🚧 Mining patterns
+- 🚧 Additional mining patterns
+- 🚧 Control computer interface
+- 🚧 Advanced features
 
 ## Development Status
 

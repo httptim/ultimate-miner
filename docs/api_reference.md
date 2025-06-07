@@ -133,67 +133,49 @@ Controls mining operations and pattern execution.
 
 ```lua
 -- Initialize mining
-Mining.init(options: table?) -> boolean, string
+Mining.init() -> boolean, string
 
--- Basic mining
-Mining.dig() -> boolean, string
-Mining.digUp() -> boolean, string
-Mining.digDown() -> boolean, string
+-- Basic inspection
+Mining.inspect(direction: string?) -> boolean, table (block_data)
+-- Direction: "forward" (default), "up", "down"
+-- Block data includes: name, is_ore, ore_type, is_protected, is_falling, is_valuable
 
--- Ore detection
-Mining.inspect() -> boolean, table (block_data)
-Mining.inspectUp() -> boolean, table
-Mining.inspectDown() -> boolean, table
-Mining.isOre(block_data: table) -> boolean, string (ore_type)
+Mining.detect(direction: string?) -> boolean
+Mining.compare(direction: string?) -> boolean
 
--- Pattern execution
-Mining.executePattern(pattern: string, options: table) -> boolean, string
--- Patterns: "strip", "branch", "spiral", "quarry", "tunnel3x3", "adaptive"
--- Options vary by pattern
+-- Mining operations
+Mining.dig(direction: string?) -> boolean, string
+-- Handles falling blocks, protected blocks, and inventory management
+
+Mining.digMove(direction: string?) -> boolean, string
+-- Digs and moves in one operation
 
 -- Vein mining
-Mining.mineVein(start_pos: table?, max_blocks: number?) -> number, table (positions)
+Mining.mineVein(max_blocks: number?) -> boolean, number (blocks_mined)
+-- Default max_blocks: 64
 
--- Utilities
-Mining.placeTorch() -> boolean
-Mining.selectTool() -> boolean
-Mining.canMine(block_data: table) -> boolean
-```
+-- Area mining
+Mining.mineAround() -> boolean, number (blocks_mined)
+-- Mines all 6 adjacent blocks
 
-### Inventory Module (`turtle.modules.inventory`)
+Mining.mine3x3(length: number?) -> boolean, number (length_mined)
+-- Creates a 3x3 tunnel
 
-Manages turtle inventory and item handling.
+-- Ore detection
+Mining.findOre(radius: number?) -> table (ore_locations)
+-- Returns array of {position, direction, ore_type, name}
 
-```lua
--- Initialize inventory
-Inventory.init() -> boolean, string
+-- Utility functions
+Mining.canMine(direction: string?) -> boolean, string
+-- Checks if block can be safely mined
 
--- Slot management
-Inventory.getItemCount(slot: number?) -> number
-Inventory.getItemDetail(slot: number) -> table?
-Inventory.select(slot: number) -> boolean
-Inventory.getSelectedSlot() -> number
+Mining.getStats() -> table (statistics)
+-- Returns: blocks_mined, ores_found, ore_percentage, runtime_seconds, blocks_per_minute, by_type
 
--- Item operations
-Inventory.transferTo(slot: number, quantity: number?) -> boolean
-Inventory.drop(quantity: number?) -> boolean
-Inventory.dropUp(quantity: number?) -> boolean
-Inventory.dropDown(quantity: number?) -> boolean
+Mining.resetStats() -> boolean
 
--- Item classification
-Inventory.classifyItem(item: table) -> string
--- Classifications: "ore", "fuel", "valuable", "tool", "torch", "junk"
-
--- Inventory management
-Inventory.consolidate() -> boolean
-Inventory.getFreeSlots() -> number
-Inventory.isFull() -> boolean
-Inventory.findItem(name: string) -> number? (slot)
-
--- Fuel management
-Inventory.refuel(amount: number?) -> boolean, number (fuel_added)
-Inventory.getFuelItems() -> table (slots)
-Inventory.optimizeFuel() -> boolean
+-- Shutdown
+Mining.shutdown() -> boolean
 ```
 
 ### Safety Module (`turtle.modules.safety`)
@@ -202,30 +184,51 @@ Handles hazard detection and emergency protocols.
 
 ```lua
 -- Initialize safety
-Safety.init(options: table?) -> boolean, string
+Safety.init() -> boolean, string
 
 -- Hazard detection
-Safety.detectLava() -> boolean, string (direction)
-Safety.detectWater() -> boolean, string
-Safety.detectVoid() -> boolean, string
-Safety.detectMob() -> boolean, string
+Safety.checkHazard(direction: string?) -> table (hazard_info)
+-- Returns: {safe: boolean, hazard: string?, danger_level: number?, message: string?}
 
--- Environmental safety
-Safety.checkSurroundings() -> table (hazards)
-Safety.isPositionSafe(pos: table) -> boolean, string
-Safety.handleFallingBlock() -> boolean
+Safety.performSafetyCheck() -> boolean, table (hazards)
+-- Comprehensive check of fuel, inventory, surroundings, and boundaries
 
--- Operational safety
-Safety.checkFuel(required: number?) -> boolean, number (current)
-Safety.hasEmergencyFuel() -> boolean
-Safety.checkBounds(pos: table) -> boolean
-Safety.detectClaim() -> boolean, table (claim_info)
+-- Movement safety
+Safety.isSafeToMove(direction: string?) -> boolean, string
+-- Checks hazards, fuel, and boundaries before movement
+
+-- Specific hazard handlers
+Safety.handleLavaHazard(direction: string) -> boolean
+Safety.handleWaterHazard(direction: string) -> boolean
+Safety.handleCriticalFuel(fuel_level: number) -> boolean
+Safety.handleFullInventory() -> boolean
 
 -- Emergency protocols
-Safety.emergencyReturn() -> boolean, string
-Safety.emergencyStop() -> boolean
-Safety.panicDrop() -> boolean
-Safety.activateCombat() -> boolean
+Safety.emergencyStop(reason: string) -> boolean
+-- Stops all operations and saves state
+
+-- Environmental safety
+Safety.ensureFloorBelow() -> boolean
+-- Places a block below if none exists
+
+Safety.checkVoidBelow(max_depth: number?) -> boolean, number (depth)
+-- Checks for void/drop below turtle
+
+Safety.checkHealth() -> boolean, string
+-- Placeholder for future health monitoring
+
+-- Configuration
+Safety.setSafetyRadius(radius: number) -> boolean
+-- Sets maximum distance from home
+
+-- Statistics
+Safety.getStats() -> table
+-- Returns: hazards_detected, emergency_stops, close_calls, last_check, time_since_check
+
+Safety.resetStats() -> boolean
+
+-- Shutdown
+Safety.shutdown() -> boolean
 ```
 
 ### Storage Module (`turtle.modules.storage`)
@@ -237,19 +240,55 @@ Manages interaction with storage containers.
 Storage.init() -> boolean, string
 
 -- Container detection
-Storage.detect() -> boolean, string (direction)
-Storage.findStorage() -> table (directions)
-Storage.isContainer(block_data: table) -> boolean
+Storage.detectStorage(direction: string?) -> boolean, table (storage_data)
+-- Returns storage info: {name, direction, info: {type, size, special?, portable?}}
 
--- Item management
-Storage.deposit(slots: table?) -> boolean, number (items_deposited)
-Storage.depositAll() -> boolean, number
-Storage.withdraw(item: string, count: number) -> boolean, number
+Storage.scanForStorage() -> table (storages)
+-- Scans all directions including left/right
 
--- Storage operations
-Storage.optimizeStorage() -> boolean
-Storage.getStorageInfo() -> table
-Storage.hasSpace() -> boolean
+-- Item storage
+Storage.storeInDirection(direction: string, categories: table?) -> boolean, number (items_stored)
+-- Categories default: {"ore", "valuable", "building"}
+
+Storage.storeItems(categories: table?) -> boolean, number (items_stored)
+-- Stores in any available storage nearby
+
+Storage.storeAll(keep_categories: table?) -> boolean, number (items_stored)
+-- Stores everything except keep_categories (default: {"tool", "fuel"})
+
+-- Storage locations
+Storage.markStorageLocation(name: string?) -> boolean, string
+-- Marks current position as storage location
+
+Storage.getNearestStorage() -> table?, number (distance)
+-- Returns nearest known storage and distance
+
+Storage.listStorageLocations() -> table
+Storage.clearStorageLocations() -> boolean
+
+-- Automated storage
+Storage.returnToStorage() -> boolean, number (items_stored)
+-- Goes to nearest storage and deposits items
+
+Storage.returnFromStorage() -> boolean, string
+-- Returns to previous work position
+
+Storage.handleFullInventory() -> boolean
+-- Automatically handles full inventory situation
+
+-- Portable storage
+Storage.hasPortableStorage() -> boolean, number (slot), string (name)
+-- Checks for ender chest or shulker box
+
+Storage.usePortableStorage(direction: string?) -> boolean, number (items_stored)
+-- Places, uses, and retrieves portable storage
+
+-- Statistics
+Storage.getStats() -> table
+-- Returns: items_stored, trips_to_storage, last_storage_time, known_locations, time_since_storage
+
+-- Shutdown
+Storage.shutdown() -> boolean
 ```
 
 ### Network Module (`turtle.modules.network`)

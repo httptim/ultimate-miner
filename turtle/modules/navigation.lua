@@ -5,6 +5,7 @@ local Core = require("turtle.modules.core")
 local State = require("turtle.modules.state")
 local Config = require("turtle.modules.config")
 local CONSTANTS = require("shared.constants")
+local Safety = nil  -- Lazy load to avoid circular dependency
 
 local Navigation = {}
 
@@ -84,6 +85,19 @@ end
 
 -- Check if movement is safe
 local function checkMovementSafety(direction)
+    -- Lazy load Safety module if available
+    if not Safety and package.loaded["turtle.modules.safety"] then
+        Safety = require("turtle.modules.safety")
+    end
+    
+    -- Use Safety module check if available
+    if Safety and Safety.isSafeToMove then
+        local safe, reason = Safety.isSafeToMove(direction)
+        if not safe then
+            return false, reason
+        end
+    end
+    
     -- Check fuel
     local fuel = turtle.getFuelLevel()
     if fuel ~= "unlimited" and fuel < Config.getEmergencyFuel() then

@@ -40,18 +40,18 @@ Ultimate Miner is a comprehensive mining automation system for CC:Tweaked that t
 - [x] Tool detection and preservation
 
 #### 2.2 Basic Mining Operations
-- [ ] Single block mining with safety checks
-- [ ] Ore detection system (all 1.21.1 ores)
-- [ ] Basic strip mining pattern
-- [ ] Gravel/sand falling block handling
-- [ ] Bedrock detection
+- [x] Single block mining with safety checks
+- [x] Ore detection system (all 1.21.1 ores)
+- [x] Basic strip mining pattern
+- [x] Gravel/sand falling block handling
+- [x] Bedrock detection
 
 #### 2.3 Storage Integration
-- [ ] Chest/storage detection
-- [ ] Item depositing system
-- [ ] Storage direction detection
-- [ ] Multi-container support
-- [ ] Return home for storage functionality
+- [x] Chest/storage detection
+- [x] Item depositing system
+- [x] Storage direction detection
+- [x] Multi-container support
+- [x] Return home for storage functionality
 
 ### Phase 3: Advanced Navigation (Weeks 5-6)
 **Goal**: Implement GPS integration and advanced pathfinding
@@ -105,7 +105,7 @@ Ultimate Miner is a comprehensive mining automation system for CC:Tweaked that t
 **Goal**: Implement all mining pattern algorithms
 
 #### 5.1 Pattern Implementations
-- [ ] Strip mining with configurable spacing
+- [x] Strip mining with configurable spacing
 - [ ] Branch mining with main tunnels
 - [ ] Spiral mining pattern
 - [ ] Quarry (rectangular excavation)

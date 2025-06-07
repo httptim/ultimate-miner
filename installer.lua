@@ -28,13 +28,14 @@ local components = {
         "turtle/modules/config.lua",
         "turtle/modules/navigation.lua",
         "turtle/modules/inventory.lua",
+        "turtle/modules/mining.lua",
+        "turtle/modules/safety.lua",
+        "turtle/modules/storage.lua",
         -- TODO: These modules are not yet implemented
-        -- "turtle/modules/mining.lua",
-        -- "turtle/modules/safety.lua",
-        -- "turtle/modules/storage.lua",
         -- "turtle/modules/network.lua",
-        -- Mining patterns (not yet implemented)
-        -- "turtle/patterns/strip.lua",
+        -- Mining patterns
+        "turtle/patterns/strip.lua",
+        -- TODO: These patterns are not yet implemented
         -- "turtle/patterns/branch.lua",
         -- "turtle/patterns/spiral.lua",
         -- "turtle/patterns/quarry.lua",

@@ -16,6 +16,9 @@ local State = require("turtle.modules.state")
 local Config = require("turtle.modules.config")
 local Navigation = require("turtle.modules.navigation")
 local Inventory = require("turtle.modules.inventory")
+local Mining = require("turtle.modules.mining")
+local Safety = require("turtle.modules.safety")
+local Storage = require("turtle.modules.storage")
 local CONSTANTS = require("shared.constants")
 
 -- Main program state
@@ -59,9 +62,25 @@ local function initialize()
         error("Failed to initialize Inventory: " .. tostring(err))
     end
     
+    -- Initialize mining operations
+    success, err = Mining.init()
+    if not success then
+        error("Failed to initialize Mining: " .. tostring(err))
+    end
+    
+    -- Initialize safety systems
+    success, err = Safety.init()
+    if not success then
+        error("Failed to initialize Safety: " .. tostring(err))
+    end
+    
+    -- Initialize storage integration
+    success, err = Storage.init()
+    if not success then
+        error("Failed to initialize Storage: " .. tostring(err))
+    end
+    
     -- TODO: Initialize other modules as they are created
-    -- Mining.init()
-    -- Safety.init()
     -- Network.init()
     
     initialized = true
@@ -131,12 +150,93 @@ local function showMenu()
     return tonumber(choice)
 end
 
--- Placeholder functions for menu options
+-- Mining menu
 local function startMining()
-    print("Mining functionality not yet implemented")
-    print("This will allow selection of mining patterns")
-    print("Press any key to continue...")
+    term.clear()
+    term.setCursorPos(1, 1)
+    
+    print("=== Mining Operations ===")
+    print()
+    print("1. Strip Mining")
+    print("2. Single Block Test")
+    print("3. 3x3 Tunnel")
+    print("4. Vein Mining Test")
+    print("5. Back to Main Menu")
+    print()
+    write("Select option: ")
+    
+    local choice = read()
+    
+    if choice == "1" then
+        -- Strip mining
+        print("\nStrip Mining Configuration")
+        write("Number of strips (default 1): ")
+        local strips = tonumber(read()) or 1
+        
+        write("Strip length (default 16): ")
+        local length = tonumber(read()) or 16
+        
+        -- Load strip mining pattern
+        local StripMining = require("turtle.patterns.strip")
+        StripMining.init({
+            strip_length = length,
+            strip_spacing = 2,
+            mine_height = 1,
+            torch_spacing = 8,
+            check_ores_sides = true,
+            vein_mine = true,
+            auto_store = true
+        })
+        
+        print("\nStarting strip mining...")
+        local success, results = StripMining.execute(strips)
+        
+        if success then
+            print("\nMining complete!")
+            print("Blocks mined: " .. results.blocks_mined)
+            print("Ores found: " .. results.ores_found)
+            print("Efficiency: " .. string.format("%.1f%%", results.efficiency))
+        else
+            print("\nMining failed or was interrupted")
+        end
+        
+    elseif choice == "2" then
+        -- Single block test
+        print("\nTesting single block mining...")
+        local success, msg = Mining.dig("forward")
+        print("Result: " .. (success and "Success" or "Failed") .. " - " .. msg)
+        
+    elseif choice == "3" then
+        -- 3x3 tunnel
+        write("\nTunnel length: ")
+        local length = tonumber(read()) or 10
+        
+        print("Mining 3x3 tunnel...")
+        local success, blocks = Mining.mine3x3(length)
+        print("Result: " .. (success and "Success" or "Failed"))
+        print("Blocks mined: " .. tostring(blocks))
+        
+    elseif choice == "4" then
+        -- Vein mining test
+        print("\nChecking for ore vein...")
+        local ores = Mining.findOre(1)
+        
+        if #ores > 0 then
+            print("Found " .. #ores .. " ore(s) nearby")
+            print("Mining vein...")
+            local success, count = Mining.mineVein(64)
+            print("Mined " .. count .. " ore blocks")
+        else
+            print("No ores found nearby")
+        end
+        
+    elseif choice == "5" then
+        return
+    end
+    
+    print("\nPress any key to continue...")
     os.pullEvent("key")
+    startMining()  -- Show menu again
 end
 
 local function configureSettings()
