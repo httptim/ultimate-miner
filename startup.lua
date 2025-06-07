@@ -1,5 +1,5 @@
 -- Ultimate Miner Startup Script
--- This properly starts the Ultimate Miner without looping
+-- Safe startup with error handling
 
 -- Detect device type
 local device_type = turtle and "turtle" or "computer"
@@ -12,14 +12,24 @@ if device_type == "turtle" then
     package.path = package.path .. ";/turtle/?.lua;/turtle/?/init.lua"
     package.path = package.path .. ";/turtle/modules/?.lua"
     
-    -- Run the turtle main program
+    -- Run the turtle main program with error catching
     print("Starting Ultimate Miner v3.0.0 - Turtle")
-    shell.run("/turtle/main.lua")
+    local ok = shell.run("/turtle/main.lua")
+    if not ok then
+        print("\nFailed to start Ultimate Miner")
+        print("Run: lua test_startup.lua")
+        print("to diagnose the issue")
+    end
 else
     package.path = package.path .. ";/control/?.lua;/control/?/init.lua"
     package.path = package.path .. ";/control/modules/?.lua"
     
-    -- Run the control main program
+    -- Run the control main program with error catching
     print("Starting Ultimate Miner v3.0.0 - Control Computer")
-    shell.run("/control/main.lua")
+    local ok = shell.run("/control/main.lua")
+    if not ok then
+        print("\nFailed to start Ultimate Miner")
+        print("Run: lua test_startup.lua")
+        print("to diagnose the issue")
+    end
 end

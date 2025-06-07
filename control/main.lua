@@ -4,15 +4,15 @@
 -- Bootstrap the module loader
 local module_loader = require("/shared/module_loader")
 
--- Initialize error handling
-local ErrorHandler = require("shared.error_handler")
-ErrorHandler.setupGlobalHandler()
-
 -- Initialize program environment
 print("Ultimate Miner v3.0.0 - Control Computer")
 print("Initializing...")
 
 local modules, env_type = module_loader.init_program("control")
+
+-- Now that paths are set up, initialize error handling
+local ErrorHandler = require("shared.error_handler")
+ErrorHandler.setupGlobalHandler()
 
 -- Now we can use require normally
 local CONSTANTS = require("shared.constants")

@@ -2,10 +2,16 @@
 -- Wraps main functions with error catching and reporting
 
 local ErrorHandler = {}
-local ErrorReporter = require("shared.error_reporter")
+local ErrorReporter = nil  -- Lazy load to avoid circular dependencies
 
--- Initialize error handling
-ErrorReporter.init()
+-- Initialize error reporter on first use
+local function ensureErrorReporter()
+    if not ErrorReporter then
+        ErrorReporter = require("shared.error_reporter")
+        ensureErrorReporter().init()
+    end
+    return ErrorReporter
+end
 
 -- Wrap a function with error handling
 function ErrorHandler.wrap(func, context_name)
@@ -18,7 +24,7 @@ function ErrorHandler.wrap(func, context_name)
                 local stack = debug and debug.traceback and debug.traceback(err, 2) or "Stack trace unavailable"
                 
                 -- Log the error
-                ErrorReporter.logError(
+                ensureErrorReporter().logError(
                     "RUNTIME",
                     err,
                     stack,
@@ -48,7 +54,7 @@ function ErrorHandler.pcall(func, ...)
         function() return func(table.unpack(args)) end,
         function(err)
             local stack = debug and debug.traceback and debug.traceback(err, 2) or "Stack trace unavailable"
-            ErrorReporter.logError("PCALL", err, stack)
+            ensureErrorReporter().logError("PCALL", err, stack)
             return err
         end
     )
@@ -58,7 +64,7 @@ end
 
 -- Create error report command
 function ErrorHandler.createErrorReport()
-    local summary = ErrorReporter.getSummary()
+    local summary = ensureErrorReporter().getSummary()
     
     print("\n=== Error Report Summary ===")
     print("Total Errors: " .. summary.total_errors)
@@ -72,7 +78,7 @@ function ErrorHandler.createErrorReport()
         end
         
         print("\nUploading to pastebin...")
-        local success, code = ErrorReporter.uploadToPastebin()
+        local success, code = ensureErrorReporter().uploadToPastebin()
         
         if success then
             print("\n=== UPLOAD SUCCESSFUL ===")
@@ -109,7 +115,7 @@ function ErrorHandler.setupGlobalHandler()
     _G.error = function(message, level)
         -- Log the error
         local stack = debug and debug.traceback and debug.traceback(message, (level or 1) + 1) or "Stack trace unavailable"
-        ErrorReporter.logError("ERROR", tostring(message), stack)
+        ensureErrorReporter().logError("ERROR", tostring(message), stack)
         
         -- Call original error
         original_error(message, level)
@@ -117,7 +123,7 @@ function ErrorHandler.setupGlobalHandler()
     
     -- Add crash handler
     _G.crashWithReport = function(error_msg)
-        ErrorReporter.createCrashReport(error_msg, debug and debug.traceback and debug.traceback() or "Stack trace unavailable")
+        ensureErrorReporter().createCrashReport(error_msg, debug and debug.traceback and debug.traceback() or "Stack trace unavailable")
     end
 end
 

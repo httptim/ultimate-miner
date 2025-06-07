@@ -4,15 +4,15 @@
 -- Bootstrap the module loader
 local module_loader = require("/shared/module_loader")
 
--- Initialize error handling
-local ErrorHandler = require("shared.error_handler")
-ErrorHandler.setupGlobalHandler()
-
 -- Initialize program environment
 print("Ultimate Miner v3.0.0 - Turtle")
 print("Initializing...")
 
 local modules, env_type = module_loader.init_program("turtle")
+
+-- Now that paths are set up, initialize error handling
+local ErrorHandler = require("shared.error_handler")
+ErrorHandler.setupGlobalHandler()
 
 -- Now we can use require normally
 local Core = require("turtle.modules.core")
