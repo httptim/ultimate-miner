@@ -873,7 +873,7 @@ function Patterns.adaptiveMine(options)
             
         else
             -- Low density - move quickly
-            if current_pattern != PATTERN_TYPES.STRIP then
+            if current_pattern ~= PATTERN_TYPES.STRIP then
                 Core.info("Low ore density - using strip pattern")
                 current_pattern = PATTERN_TYPES.STRIP
                 pattern_switches = pattern_switches + 1
