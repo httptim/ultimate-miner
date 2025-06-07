@@ -340,6 +340,10 @@ local function configureSettings()
 end
 
 local function testMovement()
+    -- Disable background ticks while in this menu
+    local old_ticks = ticks_enabled
+    ticks_enabled = false
+    
     while true do
         term.clear()
         term.setCursorPos(1, 1)
@@ -447,6 +451,7 @@ local function testMovement()
             end
             
         elseif choice == "6" then
+            ticks_enabled = old_ticks  -- Restore tick state
             return  -- Exit the loop and return to main menu
         end
         
@@ -487,21 +492,26 @@ local function networkMode()
     os.pullEvent("key")
 end
 
+-- Flag to control tick runner
+local ticks_enabled = true
+
 -- Background tick runner
 local function runTicks()
     while running do
-        -- Run tick functions for modules that need periodic updates
-        pcall(function()
-            if Monitoring and Monitoring.tick then
-                Monitoring.tick()
-            end
-            if Alerts and Alerts.tick then
-                Alerts.tick()
-            end
-            if Cancellation and Cancellation.tick then
-                Cancellation.tick()
-            end
-        end)
+        if ticks_enabled then
+            -- Run tick functions for modules that need periodic updates
+            pcall(function()
+                if Monitoring and Monitoring.tick then
+                    Monitoring.tick()
+                end
+                if Alerts and Alerts.tick then
+                    Alerts.tick()
+                end
+                if Cancellation and Cancellation.tick then
+                    Cancellation.tick()
+                end
+            end)
+        end
         os.sleep(1) -- Check every second
     end
 end
