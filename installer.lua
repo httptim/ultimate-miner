@@ -369,7 +369,13 @@ local function main()
         
         if choice == 1 then
             -- Install for current device
-            if perform_install(install_config.device_type) then
+            local install_type = install_config.device_type
+            -- Convert "computer" to "control" for proper component selection
+            if install_type == "computer" then
+                install_type = "control"
+            end
+            
+            if perform_install(install_type) then
                 print()
                 print("Installation complete! Restarting...")
                 os.sleep(2)
