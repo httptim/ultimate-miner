@@ -388,18 +388,30 @@ local function testMovement()
         if choice == "1" then
             print("\nTesting basic movements...")
             
-            print("Forward: " .. (Navigation.forward() and "Success" or "Failed"))
-            os.sleep(0.5)
+            -- Test each movement with error handling
+            local movements = {
+                {"Forward", Navigation.forward},
+                {"Back", Navigation.back},
+                {"Up", Navigation.up},
+                {"Down", Navigation.down}
+            }
             
-            print("Back: " .. (Navigation.back() and "Success" or "Failed"))
-            os.sleep(0.5)
+            for _, move in ipairs(movements) do
+                local ok, result = pcall(move[2])
+                if ok then
+                    print(move[1] .. ": " .. (result and "Success" or "Blocked"))
+                else
+                    print(move[1] .. ": Error - " .. tostring(result))
+                end
+                os.sleep(0.5)
+            end
             
-            print("Up: " .. (Navigation.up() and "Success" or "Failed"))
-            os.sleep(0.5)
-            
-            print("Down: " .. (Navigation.down() and "Success" or "Failed"))
-            
-            print("\nFinal position: " .. Navigation.formatPosition())
+            -- Show final position
+            local final_pos = "Unknown"
+            pcall(function()
+                final_pos = Navigation.formatPosition()
+            end)
+            print("\nFinal position: " .. final_pos)
             
         elseif choice == "2" then
             print("\nTesting turning...")

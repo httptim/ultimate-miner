@@ -397,12 +397,27 @@ end
 
 -- Convenience functions for common operations
 function State.getPosition()
-    return State.get("position", {x = 0, y = 0, z = 0, facing = 0})
+    local pos = State.get("position", {x = 0, y = 0, z = 0, facing = 0})
+    -- Ensure numeric values
+    if pos then
+        pos.x = tonumber(pos.x) or 0
+        pos.y = tonumber(pos.y) or 0
+        pos.z = tonumber(pos.z) or 0
+        pos.facing = tonumber(pos.facing) or 0
+    end
+    return pos
 end
 
 function State.setPosition(pos)
     if Core.isValidPosition(pos) then
-        State.set("position", pos)
+        -- Ensure numeric values before saving
+        local clean_pos = {
+            x = tonumber(pos.x) or pos.x,
+            y = tonumber(pos.y) or pos.y,
+            z = tonumber(pos.z) or pos.z,
+            facing = tonumber(pos.facing) or pos.facing
+        }
+        State.set("position", clean_pos)
         -- Also save position component immediately for safety
         State.save("position", current_state.position)
         return true

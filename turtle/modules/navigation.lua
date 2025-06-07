@@ -26,9 +26,20 @@ local return_path = nil  -- Path back to home for emergencies
 function Navigation.init(options)
     options = options or {}
     
-    -- Load position from state
+    -- Load position from state (ensure numeric values)
     position = State.getPosition() or {x = 0, y = 0, z = 0, facing = CONSTANTS.DIRECTIONS.NORTH}
+    -- Ensure position values are numbers
+    position.x = tonumber(position.x) or 0
+    position.y = tonumber(position.y) or 0
+    position.z = tonumber(position.z) or 0
+    position.facing = tonumber(position.facing) or CONSTANTS.DIRECTIONS.NORTH
+    
     home_position = State.get("home_position")
+    if home_position then
+        home_position.x = tonumber(home_position.x) or 0
+        home_position.y = tonumber(home_position.y) or 0
+        home_position.z = tonumber(home_position.z) or 0
+    end
     
     -- Initialize movement history buffer
     movement_history = Core.createCircularBuffer(Config.get("max_path_history", CONSTANTS.DEFAULTS.MAX_PATH_HISTORY))
@@ -131,10 +142,14 @@ local function checkMovementSafety(direction)
         future_pos.y = future_pos.y - 1
     end
     
-    -- Check Y bounds
-    if future_pos.y < CONSTANTS.LIMITS.MIN_SAFE_Y then
+    -- Check Y bounds (ensure numeric comparison)
+    local future_y_num = tonumber(future_pos.y) or future_pos.y
+    local min_safe_y = tonumber(CONSTANTS.LIMITS.MIN_SAFE_Y) or CONSTANTS.LIMITS.MIN_SAFE_Y
+    local max_safe_y = tonumber(CONSTANTS.LIMITS.MAX_SAFE_Y) or CONSTANTS.LIMITS.MAX_SAFE_Y
+    
+    if future_y_num < min_safe_y then
         return false, "Below minimum safe Y level"
-    elseif future_pos.y > CONSTANTS.LIMITS.MAX_SAFE_Y then
+    elseif future_y_num > max_safe_y then
         return false, "Above maximum safe Y level"
     end
     
@@ -364,9 +379,9 @@ function Navigation.locateGPS(timeout, silent)
     if x then
         -- Compare with current position for validation
         local old_pos = Core.deepCopy(position)
-        position.x = x
-        position.y = y
-        position.z = z
+        position.x = tonumber(x) or x
+        position.y = tonumber(y) or y
+        position.z = tonumber(z) or z
         -- Note: GPS doesn't provide facing, so we keep current facing
         
         -- Validate the GPS reading
@@ -461,10 +476,10 @@ function Navigation.setManualPosition(x, y, z, facing)
     end
     
     local old_pos = Core.deepCopy(position)
-    position.x = x
-    position.y = y
-    position.z = z
-    position.facing = facing
+    position.x = tonumber(x) or x
+    position.y = tonumber(y) or y
+    position.z = tonumber(z) or z
+    position.facing = tonumber(facing) or facing
     
     State.setPosition(position)
     Core.info("Position manually set from " .. Navigation.formatPosition(old_pos) .. " to " .. Navigation.formatPosition())
