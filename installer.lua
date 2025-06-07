@@ -1,7 +1,7 @@
 -- Ultimate Miner Installer
 -- Automated installation script for turtle and control computer components
 
-local VERSION = "2.2.0"
+local VERSION = "2.3.0"
 local GITHUB_BASE = "https://raw.githubusercontent.com/httptim/ultimate-miner/main/"
 local GITHUB_REPO = "https://github.com/httptim/ultimate-miner"
 
@@ -31,30 +31,35 @@ local components = {
         "turtle/modules/mining.lua",
         "turtle/modules/safety.lua",
         "turtle/modules/storage.lua",
-        -- TODO: These modules are not yet implemented
-        -- "turtle/modules/network.lua",
+        "turtle/modules/network.lua",
+        "turtle/modules/optimization.lua",
+        -- Phase 8 modules
+        "turtle/modules/targeting.lua",
+        "turtle/modules/area.lua",
+        "turtle/modules/smart_mining.lua",
         -- Mining patterns
         "turtle/patterns/strip.lua",
-        -- TODO: These patterns are not yet implemented
-        -- "turtle/patterns/branch.lua",
-        -- "turtle/patterns/spiral.lua",
-        -- "turtle/patterns/quarry.lua",
-        -- "turtle/patterns/tunnel3x3.lua",
-        -- "turtle/patterns/adaptive.lua"
+        "turtle/patterns/branch.lua",
+        "turtle/patterns/spiral.lua",
+        "turtle/patterns/quarry.lua",
+        "turtle/patterns/tunnel3x3.lua",
+        "turtle/patterns/adaptive.lua"
     },
     
     -- Control computer components
     control = {
         "control/main.lua",
+        "control/modules/core.lua",
+        "control/modules/network.lua",
+        "control/modules/fleet.lua",
+        "control/modules/commands.lua",
+        "control/modules/ui.lua",
+        "control/modules/tasks.lua",
+        "control/screens/dashboard.lua",
         -- TODO: These modules are not yet implemented
-        -- "control/modules/ui.lua",
-        -- "control/modules/fleet.lua",
-        -- "control/modules/network.lua",
         -- "control/modules/monitor.lua",
-        -- "control/modules/tasks.lua",
         -- "control/modules/config.lua",
         -- UI components (not yet implemented)
-        -- "control/ui/dashboard.lua",
         -- "control/ui/turtle_list.lua",
         -- "control/ui/resource_manager.lua",
         -- "control/ui/area_manager.lua",

@@ -197,11 +197,66 @@ Mining.startAdaptiveMining({
 - ✅ Network discovery mechanism
 - ✅ Message filtering and handlers
 
-### Coming Soon
-- 🚧 Control computer interface
-- 🚧 Fleet management
-- 🚧 Multi-turtle coordination
-- 🚧 Task assignment system
+- ✅ Control computer interface with adaptive UI
+- ✅ Fleet management and monitoring
+- ✅ Turtle registration and discovery
+- ✅ Individual and fleet-wide commands
+- ✅ Emergency stop capabilities
+- ✅ Real-time status monitoring
+
+### Phase 8 Features (NEW)
+
+#### Resource Targeting
+```lua
+-- Set specific ore gathering goals
+/turtle/main.lua target diamond 64
+/turtle/main.lua target iron 256 priority:8
+```
+
+Features:
+- ✅ Specific ore selection with quantities
+- ✅ Multi-resource queue with priorities
+- ✅ Progress tracking and time estimates
+- ✅ Automatic completion detection
+- ✅ Resource scarcity handling
+
+#### Area-Based Mining
+```lua
+-- Define and mine specific areas
+/turtle/main.lua area 100,100 164,164 name:"North Quarry"
+```
+
+Features:
+- ✅ Boundary definition and enforcement
+- ✅ Chunk loading awareness
+- ✅ Area saturation detection
+- ✅ Section-based mining progress
+- ✅ Multi-area management
+
+#### Smart Mining
+```lua
+-- Start intelligent mining session
+/turtle/main.lua smart mine diamond,emerald
+```
+
+Features:
+- ✅ Y-level auto-optimization
+- ✅ Dynamic pattern adaptation
+- ✅ Efficiency tracking and reporting
+- ✅ Alternative depth strategies
+- ✅ Real-time performance optimization
+
+### Task Management (Control Computer)
+From the control computer:
+```lua
+-- Assign resource targets to fleet
+/control/main.lua assign resource diamond 100 turtle:5
+/control/main.lua assign area 0,0,63,63 pattern:quarry
+
+-- Monitor task progress
+/control/main.lua tasks status
+/control/main.lua tasks queue
+```
 
 ## Development Status
 

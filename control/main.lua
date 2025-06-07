@@ -5,13 +5,21 @@
 local module_loader = require("/shared/module_loader")
 
 -- Initialize program environment
-print("Ultimate Miner v2.2.0 - Control Computer")
+print("Ultimate Miner v2.3.0 - Control Computer")
 print("Initializing...")
 
 local modules, env_type = module_loader.init_program("control")
 
 -- Now we can use require normally
 local CONSTANTS = require("shared.constants")
+
+-- Load control modules
+local Core = require("control.modules.core")
+local Network = require("control.modules.network")
+local Fleet = require("control.modules.fleet")
+local Commands = require("control.modules.commands")
+local UI = require("control.modules.ui")
+local Tasks = require("control.modules.tasks")
 
 -- Main program state
 local running = true
@@ -23,162 +31,91 @@ local selected_turtle = nil
 local function initialize()
     print("Loading modules...")
     
-    -- TODO: Initialize control modules as they are created
-    -- Config.init()
-    -- UI.init()
-    -- Fleet.init()
-    -- Network.init()
-    -- Monitor.init()
-    -- Tasks.init()
+    -- Initialize core first
+    local success, err = Core.init()
+    if not success then
+        error("Failed to initialize core: " .. err)
+    end
+    
+    -- Initialize network
+    success, err = Network.init()
+    if not success then
+        error("Failed to initialize network: " .. err)
+    end
+    
+    -- Initialize fleet management
+    success, err = Fleet.init()
+    if not success then
+        error("Failed to initialize fleet: " .. err)
+    end
+    
+    -- Initialize command dispatcher
+    success, err = Commands.init()
+    if not success then
+        error("Failed to initialize commands: " .. err)
+    end
+    
+    -- Initialize UI
+    success, err = UI.init()
+    if not success then
+        error("Failed to initialize UI: " .. err)
+    end
+    
+    -- Initialize task management
+    success, err = Tasks.init()
+    if not success then
+        error("Failed to initialize tasks: " .. err)
+    end
+    
+    -- Register global event handlers
+    Core.on("exit", function()
+        running = false
+    end)
     
     initialized = true
-    print("Control system initialized")
+    Core.log("INFO", "Control system initialized successfully")
 end
 
--- Display main dashboard
-local function displayDashboard()
-    term.clear()
-    term.setCursorPos(1, 1)
+
+-- Event loop
+local function eventLoop()
+    Core.log("INFO", "Starting event loop")
     
-    -- Header
-    if term.isColor() then
-        term.setTextColor(colors.yellow)
+    while running do
+        local event_data = {os.pullEvent()}
+        local event = event_data[1]
+        
+        -- Remove event name from data
+        table.remove(event_data, 1)
+        
+        -- Emit to core event system
+        Core.emit(event, table.unpack(event_data))
+        
+        -- Handle specific events
+        if event == "terminate" then
+            Core.log("INFO", "Received terminate signal")
+            running = false
+        end
     end
-    print("=== Ultimate Miner Control Center ===")
-    if term.isColor() then
-        term.setTextColor(colors.white)
-    end
-    
-    print()
-    
-    -- Fleet overview
-    print("Fleet Overview:")
-    print(string.format("  Connected Turtles: %d", 0))  -- TODO: Get from Fleet module
-    print(string.format("  Active Operations: %d", 0))
-    print(string.format("  Total Blocks Mined: %d", 0))
-    print()
-    
-    -- Recent activity
-    print("Recent Activity:")
-    print("  No recent activity")  -- TODO: Get from event log
-    print()
-    
-    -- Menu
-    print("Commands:")
-    print("  [1] Turtle Management")
-    print("  [2] Start Mining Operation")
-    print("  [3] Resource Targets")
-    print("  [4] Area Management")
-    print("  [5] View Statistics")
-    print("  [6] Settings")
-    print("  [Q] Quit")
-    print()
-    write("Select option: ")
 end
 
--- Turtle management interface
-local function turtleManagement()
+-- Shutdown all systems
+local function shutdown()
+    Core.log("INFO", "Shutting down control system")
+    
+    -- Shutdown in reverse order
+    Tasks.shutdown()
+    UI.shutdown()
+    Commands.shutdown()
+    Fleet.shutdown()
+    Network.shutdown()
+    Core.shutdown()
+    
+    -- Clear screen
     term.clear()
     term.setCursorPos(1, 1)
     
-    print("=== Turtle Management ===")
-    print()
-    print("No turtles connected")  -- TODO: Show actual turtle list
-    print()
-    print("Features to be implemented:")
-    print("- List all connected turtles")
-    print("- View individual turtle status")
-    print("- Send commands to turtles")
-    print("- Emergency stop all")
-    print()
-    print("Press any key to return...")
-    os.pullEvent("key")
-end
-
--- Mining operation setup
-local function startMiningOperation()
-    term.clear()
-    term.setCursorPos(1, 1)
-    
-    print("=== Start Mining Operation ===")
-    print()
-    print("Features to be implemented:")
-    print("- Select mining pattern")
-    print("- Define mining area")
-    print("- Assign turtles")
-    print("- Set resource targets")
-    print("- Start coordinated mining")
-    print()
-    print("Press any key to return...")
-    os.pullEvent("key")
-end
-
--- Resource targeting
-local function resourceTargets()
-    term.clear()
-    term.setCursorPos(1, 1)
-    
-    print("=== Resource Targets ===")
-    print()
-    print("Features to be implemented:")
-    print("- Set specific ore targets")
-    print("- Define quantities needed")
-    print("- Priority ordering")
-    print("- Multi-resource queues")
-    print()
-    print("Press any key to return...")
-    os.pullEvent("key")
-end
-
--- Area management
-local function areaManagement()
-    term.clear()
-    term.setCursorPos(1, 1)
-    
-    print("=== Area Management ===")
-    print()
-    print("Features to be implemented:")
-    print("- Define mining zones")
-    print("- Set boundaries")
-    print("- Assign areas to turtles")
-    print("- View area progress")
-    print()
-    print("Press any key to return...")
-    os.pullEvent("key")
-end
-
--- View statistics
-local function viewStatistics()
-    term.clear()
-    term.setCursorPos(1, 1)
-    
-    print("=== Fleet Statistics ===")
-    print()
-    print("Features to be implemented:")
-    print("- Total resources gathered")
-    print("- Mining efficiency metrics")
-    print("- Turtle performance comparison")
-    print("- Historical data graphs")
-    print()
-    print("Press any key to return...")
-    os.pullEvent("key")
-end
-
--- Settings interface
-local function settings()
-    term.clear()
-    term.setCursorPos(1, 1)
-    
-    print("=== Settings ===")
-    print()
-    print("Features to be implemented:")
-    print("- Network configuration")
-    print("- Display preferences")
-    print("- Alert settings")
-    print("- Performance tuning")
-    print()
-    print("Press any key to return...")
-    os.pullEvent("key")
+    print("Control system shut down successfully")
 end
 
 -- Main program loop
@@ -186,43 +123,40 @@ local function main()
     -- Initialize
     initialize()
     
-    -- Main loop
-    while running do
-        displayDashboard()
-        
-        local input = read()
-        
-        if input == "1" then
-            turtleManagement()
-        elseif input == "2" then
-            startMiningOperation()
-        elseif input == "3" then
-            resourceTargets()
-        elseif input == "4" then
-            areaManagement()
-        elseif input == "5" then
-            viewStatistics()
-        elseif input == "6" then
-            settings()
-        elseif input:lower() == "q" then
-            running = false
-        else
-            print("Invalid option")
-            os.sleep(1)
-        end
-    end
+    -- Show dashboard UI
+    local Dashboard = require("control.screens.dashboard")
+    UI.showScreen(Dashboard.create())
+    
+    -- Run event loop
+    eventLoop()
     
     -- Cleanup
-    print("Shutting down control system...")
-    -- TODO: Save state, disconnect network, etc.
+    shutdown()
 end
 
 -- Error handling wrapper
-local success, err = pcall(main)
-if not success then
+local function errorHandler(err)
     print()
     print("Error: " .. tostring(err))
+    print("Stack trace:")
+    print(debug.traceback())
+    
+    -- Try to log if possible
+    pcall(function()
+        if Core and Core.log then
+            Core.log("CRITICAL", "Fatal error: " .. err)
+        end
+    end)
+    
     print()
     print("Please report this error at:")
     print("https://github.com/httptim/ultimate-miner/issues")
+end
+
+-- Run with error handling
+local success, err = xpcall(main, errorHandler)
+
+if not success then
+    print("Control system crashed")
+    print("Check logs for details")
 end

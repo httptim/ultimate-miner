@@ -63,6 +63,30 @@ function Network.init(custom_protocol)
         })
     end)
     
+    -- Phase 8 command handlers
+    Network.registerHandler("add_resource_target", function(sender, data)
+        Core.emit("network.resource_target_received", {
+            sender = sender,
+            resource = data.resource,
+            quantity = data.quantity,
+            options = data.options
+        })
+    end)
+    
+    Network.registerHandler("assign_area", function(sender, data)
+        Core.emit("network.area_assigned", {
+            sender = sender,
+            area = data.area
+        })
+    end)
+    
+    Network.registerHandler("start_smart_mining", function(sender, data)
+        Core.emit("network.smart_mining_start", {
+            sender = sender,
+            options = data.options
+        })
+    end)
+    
     initialized = true
     Core.log("INFO", "Network module initialized with protocol: " .. protocol)
     
@@ -497,6 +521,109 @@ end
 -- Get control computer ID
 function Network.getControlComputer()
     return control_computer_id
+end
+
+-- Send task progress update
+function Network.sendTaskProgress(progress_data)
+    if not connected then
+        return false, "Not connected"
+    end
+    
+    local message = {
+        type = "task_progress",
+        id = computer_id,
+        progress = progress_data,
+        timestamp = os.epoch("utc")
+    }
+    
+    if control_computer_id then
+        return Network.send(control_computer_id, message)
+    else
+        return Network.broadcast(message)
+    end
+end
+
+-- Send task completion notification
+function Network.sendTaskComplete(result_data)
+    if not connected then
+        return false, "Not connected"
+    end
+    
+    local message = {
+        type = "task_complete",
+        id = computer_id,
+        result = result_data,
+        timestamp = os.epoch("utc")
+    }
+    
+    if control_computer_id then
+        return Network.send(control_computer_id, message)
+    else
+        return Network.broadcast(message)
+    end
+end
+
+-- Send task failure notification
+function Network.sendTaskFailed(error_data)
+    if not connected then
+        return false, "Not connected"
+    end
+    
+    local message = {
+        type = "task_failed",
+        id = computer_id,
+        error = error_data.error,
+        recoverable = error_data.recoverable or false,
+        timestamp = os.epoch("utc")
+    }
+    
+    if control_computer_id then
+        return Network.send(control_computer_id, message)
+    else
+        return Network.broadcast(message)
+    end
+end
+
+-- Send area saturation notification
+function Network.sendAreaSaturated(area_stats)
+    if not connected then
+        return false, "Not connected"
+    end
+    
+    local message = {
+        type = "area_saturated",
+        id = computer_id,
+        area_stats = area_stats,
+        timestamp = os.epoch("utc")
+    }
+    
+    if control_computer_id then
+        return Network.send(control_computer_id, message)
+    else
+        return Network.broadcast(message)
+    end
+end
+
+-- Send resource found notification
+function Network.sendResourceFound(resource_data)
+    if not connected then
+        return false, "Not connected"
+    end
+    
+    local message = {
+        type = "resource_found",
+        id = computer_id,
+        resource = resource_data.resource,
+        position = resource_data.position,
+        quantity = resource_data.quantity or 1,
+        timestamp = os.epoch("utc")
+    }
+    
+    if control_computer_id then
+        return Network.send(control_computer_id, message)
+    else
+        return Network.broadcast(message)
+    end
 end
 
 -- Close modem (for shutdown)

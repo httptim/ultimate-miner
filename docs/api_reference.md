@@ -671,56 +671,505 @@ Config.setSchema(schema: table) -> boolean
 
 ## Control Computer APIs
 
+### Core Module (`control.modules.core`)
+
+Provides device detection and core utilities for control computer.
+
+```lua
+-- Initialize core
+Core.init() -> boolean, string
+
+-- Device capabilities
+Core.getCapabilities() -> table
+-- Returns: {
+--   is_computer: boolean,
+--   is_advanced: boolean,
+--   has_color: boolean,
+--   screen_width: number,
+--   screen_height: number,
+--   has_mouse: boolean,
+--   has_touch: boolean,
+--   has_speaker: boolean,
+--   modem_sides: table
+-- }
+
+-- Logging
+Core.log(level: string, message: string) -> nil
+-- Levels: "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"
+
+-- Event system
+Core.emit(event: string, ...) -> nil
+Core.on(event: string, handler: function) -> number
+Core.off(event: string, handler_id: number) -> boolean
+
+-- Utilities
+Core.sleep(seconds: number) -> nil
+Core.tableContains(tbl: table, value: any) -> boolean
+Core.deepCopy(tbl: table) -> table
+Core.tableKeys(tbl: table) -> table
+Core.formatDuration(seconds: number) -> string
+
+-- Shutdown
+Core.shutdown() -> boolean
+```
+
+### Network Module (`control.modules.network`)
+
+Handles network communication for control computer.
+
+```lua
+-- Initialize network
+Network.init() -> boolean, string
+
+-- Messaging
+Network.send(recipient: number, message: table) -> boolean
+Network.broadcast(message: table) -> boolean
+Network.sendCommand(turtle_id: number, command: string, data: table) -> boolean
+
+-- Status requests
+Network.requestStatus(turtle_id: number) -> boolean
+Network.requestAllStatus() -> boolean
+
+-- Emergency control
+Network.emergencyStopAll(reason: string?) -> boolean
+
+-- Message handling
+Network.registerHandler(msg_type: string, handler: function) -> boolean
+-- Handler signature: function(sender: number, message: table)
+
+-- Statistics
+Network.getStats() -> table
+-- Returns: {
+--   initialized: boolean,
+--   computer_id: number,
+--   protocol: string,
+--   modem_side: string,
+--   modem_type: string,
+--   heartbeat_timeout: number,
+--   handlers_registered: table
+-- }
+
+-- Shutdown
+Network.shutdown() -> boolean
+```
+
 ### Fleet Module (`control.modules.fleet`)
 
-Manages multiple turtles.
+Manages turtle registration and fleet coordination.
 
 ```lua
 -- Initialize fleet
 Fleet.init() -> boolean, string
 
--- Turtle management
+-- Turtle registration
 Fleet.registerTurtle(id: number, info: table) -> boolean
-Fleet.unregisterTurtle(id: number) -> boolean
+Fleet.unregisterTurtle(id: number, reason: string?) -> boolean
+
+-- Turtle data access
 Fleet.getTurtle(id: number) -> table?
 Fleet.getAllTurtles() -> table
+Fleet.getOnlineTurtles() -> table
+Fleet.getStatusCounts() -> table
 
--- Status monitoring
+-- Status updates
+Fleet.updateHeartbeat(id: number, data: table) -> boolean
 Fleet.updateStatus(id: number, status: table) -> boolean
-Fleet.getStatus(id: number) -> table?
-Fleet.getActiveCount() -> number
 
--- Command distribution
-Fleet.sendCommand(id: number, command: table) -> boolean
-Fleet.broadcastCommand(command: table) -> boolean
-Fleet.assignTask(id: number, task: table) -> boolean
+-- Task management
+Fleet.assignTask(turtle_id: number, task: table) -> boolean, string?
+Fleet.handleTaskComplete(id: number, result: table) -> nil
+Fleet.handleError(id: number, error_data: table) -> nil
+
+-- Fleet commands
+Fleet.broadcastCommand(command: string, data: table) -> number
+Fleet.emergencyStopAll(reason: string?) -> boolean
+
+-- Data persistence
+Fleet.saveFleetData() -> boolean
+Fleet.loadFleetData() -> boolean
+
+-- Statistics
+Fleet.getStats() -> table
+-- Returns: {
+--   counts: table,
+--   total_blocks_mined: number,
+--   total_fuel_used: number,
+--   oldest_turtle: table?,
+--   newest_turtle: table?
+-- }
+
+-- Shutdown
+Fleet.shutdown() -> boolean
+```
+
+### Commands Module (`control.modules.commands`)
+
+Command dispatcher for turtle control.
+
+```lua
+-- Initialize commands
+Commands.init() -> boolean, string
+
+-- Command registration
+Commands.register(name: string, command_def: table) -> boolean
+-- command_def: {
+--   description: string,
+--   parameters: table,
+--   handler: function?,
+--   requires_online: boolean?
+-- }
+
+-- Command execution
+Commands.execute(turtle_id: number, command_name: string, parameters: table) -> boolean, string?
+Commands.executeMultiple(turtle_ids: table, command_name: string, parameters: table) -> table
+Commands.executeAll(command_name: string, parameters: table) -> table
+
+-- Available commands
+Commands.getAvailable() -> table
+-- Returns array of {name, description, parameters}
+
+-- Parameter validation
+Commands.validateParameters(schema: table, params: table) -> string?
+
+-- Default commands:
+-- "move_to" - Move to coordinates
+-- "return_home" - Return to home position
+-- "mine_pattern" - Execute mining pattern
+-- "mine_area" - Mine specific area
+-- "mine_ore" - Mine for specific ore
+-- "emergency_stop" - Emergency stop
+-- "pause" - Pause operation
+-- "resume" - Resume operation
+-- "get_status" - Request status
+-- "get_inventory" - Request inventory
+-- "refuel" - Refuel from inventory
+-- "deposit_items" - Deposit to storage
+-- "update_config" - Update configuration
+
+-- Shutdown
+Commands.shutdown() -> boolean
 ```
 
 ### UI Module (`control.modules.ui`)
 
-Provides user interface functionality.
+Adaptive user interface system.
 
 ```lua
 -- Initialize UI
 UI.init() -> boolean, string
 
--- Display management
-UI.clear() -> nil
-UI.setCursorPos(x: number, y: number) -> nil
-UI.write(text: string) -> nil
-UI.setTextColor(color: number) -> nil
-UI.setBackgroundColor(color: number) -> nil
-
--- Input handling
-UI.readKey() -> number (key)
-UI.readClick() -> number, number (x, y)
-UI.prompt(message: string, options: table?) -> string
-
--- Screen management
+-- Display properties
 UI.getSize() -> number, number (width, height)
 UI.isColor() -> boolean
+UI.isAdvanced() -> boolean
+
+-- Basic drawing
+UI.clear() -> nil
+UI.drawHeader(title: string, subtitle: string?) -> nil
+UI.drawFooter(text: string) -> nil
+UI.drawText(x: number, y: number, text: string, color: number?) -> nil
+UI.drawCenteredText(y: number, text: string, color: number?) -> nil
+
+-- UI components
+UI.drawMenu(items: table, selected: number, start_y: number?) -> nil
+UI.drawTable(headers: table, rows: table, start_y: number?, selected_row: number?) -> nil
+UI.drawProgressBar(x: number, y: number, width: number, progress: number, max: number) -> nil
+UI.drawStatus(x: number, y: number, status: string) -> nil
+UI.drawBox(x: number, y: number, width: number, height: number, title: string?) -> nil
+
+-- Screen management
+UI.showScreen(screen: table) -> nil
 UI.pushScreen(screen: table) -> nil
 UI.popScreen() -> nil
+UI.render() -> nil
+UI.refresh() -> nil
+
+-- Screen object format:
+-- {
+--   name: string,
+--   render: function,
+--   refresh: function?,
+--   onKey: function(key)?,
+--   onChar: function(char)?,
+--   onMouseClick: function(button, x, y)?,
+--   onMouseScroll: function(direction, x, y)?,
+--   onEnter: function?,
+--   onExit: function?
+-- }
+
+-- Auto refresh
+UI.startRefresh(interval: number?) -> nil
+UI.stopRefresh() -> nil
+
+-- User interaction
+UI.prompt(message: string, default: string?) -> string
+UI.showMessage(message: string, color: number?, duration: number?) -> nil
+UI.confirm(message: string) -> boolean
+
+-- Color scheme
+UI.colors = {
+    background: number,
+    text: number,
+    header: number,
+    header_text: number,
+    selected: number,
+    selected_text: number,
+    success: number,
+    warning: number,
+    error: number,
+    border: number
+}
+
+-- Shutdown
+UI.shutdown() -> boolean
+```
+
+## Phase 8: Advanced Features APIs
+
+### Resource Targeting Module (`turtle.modules.targeting`)
+
+Handles specific ore targeting with quantity goals and progress tracking.
+
+```lua
+-- Initialize module
+Targeting.init() -> boolean, string
+
+-- Add resource target
+Targeting.addTarget(resource_type: string, quantity: number, options: table?) -> boolean, number (target_id)
+-- Options: {
+--   priority: number (1-10, default 5),
+--   search_radius: number (default 128),
+--   timeout: number (seconds, default 3600),
+--   pattern: string (default "adaptive")
+-- }
+
+-- Remove target
+Targeting.removeTarget(target_id: number) -> boolean, string
+
+-- Get all targets
+Targeting.getTargets() -> table
+-- Returns array of {id, resource, quantity, gathered, remaining, priority, status, progress_percent}
+
+-- Get current active target
+Targeting.getCurrentTarget() -> table?
+
+-- Get target progress
+Targeting.getProgress(target_id: number) -> table?
+-- Returns: {target, gathered, remaining, blocks_mined, veins_found, search_time, efficiency, complete}
+
+-- Process next target in queue
+Targeting.processNext() -> boolean, table|string
+
+-- Clear all targets
+Targeting.clearTargets() -> boolean, string
+
+-- Get resource information
+Targeting.getResourceInfo(resource_type: string) -> table?
+-- Returns: {name, blocks, optimal_y, y_range, value, special?}
+
+-- Get available resources
+Targeting.getAvailableResources() -> table
+-- Returns sorted array of resource definitions
+
+-- Estimate time for resource gathering
+Targeting.estimateTime(resource_type: string, quantity: number) -> table?
+-- Returns: {seconds, blocks, formatted}
+
+-- Get statistics
+Targeting.getStats() -> table
+-- Returns: {active_targets, completed_targets, total_search_time, resources_gathered, current_target}
+
+-- Shutdown
+Targeting.shutdown() -> boolean
+```
+
+### Area Mining Module (`turtle.modules.area`)
+
+Manages area-based mining with boundaries and chunk awareness.
+
+```lua
+-- Initialize module
+Area.init() -> boolean, string
+
+-- Define mining area
+Area.defineArea(corner1: table, corner2: table, options: table?) -> boolean, table (area)
+-- corner1/corner2: {x, z, y?} coordinates
+-- Options: {
+--   id: string?,
+--   name: string?,
+--   min_y: number?,
+--   max_y: number?,
+--   pattern: string (default "strip"),
+--   priority: number (default 5),
+--   owner: number?
+-- }
+
+-- Get chunks covered by area
+Area.getAreaChunks(bounds: table) -> table (chunks)
+
+-- Assign area to turtle
+Area.assignArea(area: table) -> boolean, string
+
+-- Check if position is in bounds
+Area.isInBounds(pos: table) -> boolean
+
+-- Enforce boundary on position
+Area.enforceBoundary(target_pos: table) -> table (enforced_pos)
+
+-- Mine assigned area
+Area.mineAssignedArea() -> boolean, table (progress)
+
+-- Update chunk status
+Area.updateChunkStatus(pos: table) -> nil
+
+-- Check area saturation
+Area.checkSaturation() -> number (0-1)
+
+-- Get area statistics
+Area.getAreaStats() -> table?
+-- Returns: {area, progress: {blocks_mined, ores_found, time_mining, saturation, chunks...}}
+
+-- Release assigned area
+Area.releaseArea() -> boolean, string
+
+-- Format area for display
+Area.formatArea(area: table) -> string
+
+-- Check if chunk is loaded
+Area.isChunkLoaded(chunk_x: number, chunk_z: number) -> boolean, string
+-- Status: "recent", "probable", "stale", "unknown"
+
+-- Get next unmined section
+Area.getNextSection() -> table?
+
+-- Mark section complete
+Area.markSectionComplete(section_key: string) -> boolean
+
+-- Shutdown
+Area.shutdown() -> boolean
+```
+
+### Smart Mining Module (`turtle.modules.smart_mining`)
+
+Intelligent mining with adaptive strategies and optimization.
+
+```lua
+-- Initialize module
+SmartMining.init() -> boolean, string
+
+-- Optimize Y level for target ores
+SmartMining.optimizeYLevel(target_ores: table?) -> boolean, number (best_y)
+-- target_ores: array of ore names (default: {"diamond", "iron", "gold"})
+
+-- Handle resource scarcity
+SmartMining.handleScarcity(ore_type: string?) -> boolean, table (strategies_applied)
+-- Strategies: expand_radius, change_depth, switch_pattern, relocate, change_target
+
+-- Get alternative mining depths
+SmartMining.getAlternativeDepths(ore_type: string, current_y: number) -> table (y_levels)
+
+-- Adapt mining pattern
+SmartMining.adaptPattern() -> boolean, table? (strategy)
+-- Returns: {pattern, options, reason}
+
+-- Execute smart mining session
+SmartMining.mine(options: table?) -> boolean, table (results)
+-- Options: {
+--   target_ores: table?,
+--   max_blocks: number?,
+--   timeout: number?
+-- }
+-- Results: {blocks_mined, ores_found, time_seconds, blocks_per_minute, final_strategy}
+
+-- Update mining statistics
+SmartMining.updateStats(pos: table, block_data: table) -> nil
+
+-- Get recent statistics window
+SmartMining.getRecentStats(window_size: number?) -> table
+-- Returns: {blocks, ores, ore_rate}
+
+-- Get efficiency report
+SmartMining.getEfficiencyReport() -> table
+-- Returns: {
+--   total_blocks, total_ores, overall_rate,
+--   by_ore_type, pattern_efficiency, best_y_levels,
+--   scarcity_mode
+-- }
+
+-- Reset statistics
+SmartMining.resetStats() -> boolean
+
+-- Shutdown
+SmartMining.shutdown() -> boolean
+```
+
+### Task Management Module (`control.modules.tasks`)
+
+Handles task creation, assignment, and tracking for turtle fleet.
+
+```lua
+-- Initialize module
+Tasks.init() -> boolean, string
+
+-- Create resource targeting task
+Tasks.createResourceTask(resource_type: string, quantity: number, options: table?) -> table (task)
+-- Options: {priority: number?, search_radius: number?, timeout: number?, pattern: string?}
+
+-- Create area mining task
+Tasks.createAreaTask(bounds: table, options: table?) -> table (task)
+-- bounds: {x1, z1, x2, z2, y_min?, y_max?}
+-- Options: {name: string?, pattern: string?, priority: number?}
+
+-- Create smart mining task
+Tasks.createSmartMiningTask(options: table?) -> table (task)
+-- Options: {target_ores: table?, max_blocks: number?, timeout: number?, priority: number?}
+
+-- Queue task for assignment
+Tasks.queueTask(task: table) -> boolean
+
+-- Assign pending tasks to available turtles
+Tasks.assignPendingTasks() -> nil
+
+-- Find suitable task for turtle
+Tasks.findSuitableTask(turtle: table) -> table?
+
+-- Assign task to specific turtle
+Tasks.assignTask(task: table, turtle_id: number) -> nil
+
+-- Handle task progress update
+Tasks.handleTaskProgress(sender: number, data: table) -> nil
+
+-- Handle task completion
+Tasks.handleTaskComplete(sender: number, data: table) -> nil
+
+-- Handle task failure
+Tasks.handleTaskFailed(sender: number, data: table) -> nil
+
+-- Handle area saturation
+Tasks.handleAreaSaturated(sender: number, data: table) -> nil
+
+-- Handle resource found
+Tasks.handleResourceFound(sender: number, data: table) -> nil
+
+-- Get available areas
+Tasks.getAvailableAreas() -> table
+
+-- Get task statistics
+Tasks.getStats() -> table
+-- Returns: {queued, active, completed, by_type, resource_totals, area_coverage}
+
+-- Get active tasks
+Tasks.getActiveTasks() -> table
+-- Returns array of {task, turtle_id, duration}
+
+-- Get task queue
+Tasks.getQueue() -> table
+
+-- Clean up old completed tasks
+Tasks.cleanupCompleted(max_age: number?) -> number (cleaned_count)
+
+-- Shutdown
+Tasks.shutdown() -> boolean
 ```
 
 ## Event Reference
@@ -747,6 +1196,34 @@ UI.popScreen() -> nil
 "network.connected" -> {id: number}
 "network.disconnected" -> {reason: string}
 "network.message_received" -> {sender: number, message: table}
+"network.resource_target_received" -> {sender: number, resource: string, quantity: number, options: table}
+"network.area_assigned" -> {sender: number, area: table}
+"network.smart_mining_start" -> {sender: number, options: table}
+
+-- Resource targeting events
+"targeting:initialized" -> nil
+"targeting:target_added" -> {target: table}
+"targeting:target_removed" -> {target: table}
+"targeting:processing_target" -> {target: table}
+"targeting:target_completed" -> {target: table, result: table}
+"targeting:target_failed" -> {target: table, reason: string}
+"targeting:targets_cleared" -> nil
+
+-- Area mining events
+"area:initialized" -> nil
+"area:defined" -> {area: table}
+"area:assigned" -> {area: table}
+"area:boundary_enforced" -> {target_pos: table, enforced_pos: table}
+"area:progress" -> {area: table, progress: table, percentage: number}
+"area:complete" -> {area: table, progress: table}
+"area:released" -> {area: table}
+
+-- Smart mining events
+"smart_mining:initialized" -> nil
+"smart_mining:pattern_adapted" -> {strategy: table}
+"smart_mining:scarcity_handled" -> {ore_type: string?, strategies: table, success: boolean}
+"smart_mining:area_saturated" -> {area_stats: table}
+"smart_mining:storage_needed" -> nil
 ```
 
 ### Control Computer Events
@@ -758,10 +1235,13 @@ UI.popScreen() -> nil
 "fleet.status_update" -> {id: number, status: table}
 
 -- Task events
-"task.assigned" -> {turtle_id: number, task: table}
-"task.completed" -> {turtle_id: number, task: table, result: table}
-"task.failed" -> {turtle_id: number, task: table, error: string}
-```
+"tasks:initialized" -> nil
+"tasks:queued" -> {task: table}
+"tasks:assigned" -> {task: table, turtle_id: number}
+"tasks:progress" -> {task: table, data: table}
+"tasks:completed" -> {task: table, data: table}
+"tasks:failed" -> {task: table, data: table}
+"tasks:resource_found" -> {sender: number, data: table}
 
 ## Error Codes
 
@@ -856,4 +1336,100 @@ for id, turtle in pairs(Fleet.getAllTurtles()) do
         break
     end
 end
+```
+
+### Resource Targeting Example (Phase 8)
+```lua
+local Targeting = require("turtle.modules.targeting")
+local SmartMining = require("turtle.modules.smart_mining")
+
+-- Initialize modules
+Targeting.init()
+SmartMining.init()
+
+-- Add high-priority diamond target
+Targeting.addTarget("diamond", 64, {
+    priority = 9,
+    search_radius = 256,
+    pattern = "adaptive"
+})
+
+-- Add secondary targets
+Targeting.addTarget("iron", 256, {priority = 5})
+Targeting.addTarget("gold", 128, {priority = 6})
+
+-- Process targets with smart mining
+while Targeting.getCurrentTarget() do
+    local success, result = Targeting.processNext()
+    if success then
+        print("Target completed: " .. textutils.serialize(result))
+    end
+end
+```
+
+### Area Mining Example (Phase 8)
+```lua
+local Area = require("turtle.modules.area")
+local Network = require("turtle.modules.network")
+
+-- Initialize modules
+Area.init()
+
+-- Define mining area
+local success, area = Area.defineArea(
+    {x = 100, z = 100},
+    {x = 164, z = 164},
+    {
+        name = "North Quarry",
+        min_y = -64,
+        max_y = 16,
+        pattern = "quarry"
+    }
+)
+
+-- Assign and mine area
+if success then
+    Area.assignArea(area)
+    local result = Area.mineAssignedArea()
+    
+    -- Report completion
+    Network.sendAreaSaturated(Area.getAreaStats())
+end
+```
+
+### Smart Mining with Task Management (Phase 8)
+```lua
+-- Control Computer Side
+local Tasks = require("control.modules.tasks")
+local Fleet = require("control.modules.fleet")
+
+-- Create smart mining task for diamonds
+local task = Tasks.createSmartMiningTask({
+    target_ores = {"diamond", "emerald"},
+    max_blocks = 10000,
+    timeout = 7200,
+    priority = 10
+})
+
+-- Queue for assignment
+Tasks.queueTask(task)
+
+-- Monitor progress
+local function monitorTasks()
+    while true do
+        local stats = Tasks.getStats()
+        print(string.format("Tasks: %d queued, %d active, %d completed",
+            stats.queued, stats.active, stats.completed))
+        
+        -- Check resource totals
+        for resource, data in pairs(stats.resource_totals) do
+            print(string.format("%s: %d/%d (%.1f%%)",
+                resource, data.gathered, data.requested, data.percentage))
+        end
+        
+        os.sleep(10)
+    end
+end
+
+parallel.waitForAny(monitorTasks)
 ```
