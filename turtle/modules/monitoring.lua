@@ -70,7 +70,12 @@ function Monitoring.init()
     Core.log("INFO", "Initializing monitoring system")
     
     -- Load historical data
-    local saved_data = State.load("monitoring") or {}
+    local success, saved_data = State.loadFile("monitoring")
+    
+    -- Ensure saved_data is a table
+    if not success or type(saved_data) ~= "table" then
+        saved_data = {}
+    end
     
     -- Merge saved data
     if saved_data.performance then

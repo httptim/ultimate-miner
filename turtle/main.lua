@@ -521,10 +521,75 @@ local function main()
 end
 
 -- Error handling wrapper
-local success, err = pcall(main)
+local success, err = xpcall(main, function(error_msg)
+    -- Get stack trace
+    local stack = debug and debug.traceback and debug.traceback(error_msg, 2) or "No stack trace available"
+    return {message = error_msg, stack = stack}
+end)
+
 if not success then
     print()
-    print("Error: " .. tostring(err))
+    print("=== CRITICAL ERROR ===")
+    print("Error: " .. tostring(err.message or err))
+    print()
+    
+    -- Try to log the error
+    local logged = false
+    if ErrorHandler then
+        local ok = pcall(function()
+            -- Ensure error reporter is loaded
+            local ErrorReporter = require("shared.error_reporter")
+            ErrorReporter.init()
+            
+            -- Log the error
+            ErrorReporter.logError(
+                "CRASH",
+                tostring(err.message or err),
+                err.stack,
+                {
+                    module = "turtle_main",
+                    initialized = initialized
+                }
+            )
+            
+            -- Try to upload
+            print("Creating error report...")
+            local upload_ok, code = ErrorReporter.uploadToPastebin("Ultimate Miner Crash Report")
+            if upload_ok then
+                print()
+                print("=== ERROR REPORT UPLOADED ===")
+                print("Pastebin Code: " .. code)
+                print("URL: https://pastebin.com/" .. code)
+                print()
+                print("Please include this code when reporting!")
+                logged = true
+            else
+                print("Upload failed, error saved locally")
+                logged = true
+            end
+        end)
+        
+        if not ok then
+            print("Failed to create error report")
+        end
+    end
+    
+    -- Fallback logging
+    if not logged then
+        local file = fs.open("/ultimate_miner_crash.log", "w")
+        if file then
+            file.writeLine("Ultimate Miner Crash Report")
+            file.writeLine("Time: " .. os.date())
+            file.writeLine("Error: " .. tostring(err.message or err))
+            if err.stack then
+                file.writeLine("Stack trace:")
+                file.writeLine(err.stack)
+            end
+            file.close()
+            print("Crash saved to: /ultimate_miner_crash.log")
+        end
+    end
+    
     print()
     print("Please report this error at:")
     print("https://github.com/httptim/ultimate-miner/issues")
@@ -536,4 +601,8 @@ if not success then
             Config.save()
         end)
     end
+    
+    print()
+    print("Press any key to exit...")
+    os.pullEvent("key")
 end

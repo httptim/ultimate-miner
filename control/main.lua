@@ -141,26 +141,72 @@ end
 -- Error handling wrapper
 local function errorHandler(err)
     print()
+    print("=== CRITICAL ERROR ===")
     print("Error: " .. tostring(err))
-    print("Stack trace:")
-    print(debug.traceback())
     
-    -- Try to log if possible
+    local stack = debug and debug.traceback and debug.traceback(err, 2) or "No stack trace available"
+    
+    -- Try to create error report
+    local logged = false
     pcall(function()
-        if Core and Core.log then
-            Core.log("CRITICAL", "Fatal error: " .. err)
+        -- Ensure error reporter is loaded
+        local ErrorReporter = require("shared.error_reporter")
+        ErrorReporter.init()
+        
+        -- Log the error
+        ErrorReporter.logError(
+            "CRASH",
+            tostring(err),
+            stack,
+            {
+                module = "control_main"
+            }
+        )
+        
+        -- Try to upload
+        print("Creating error report...")
+        local upload_ok, code = ErrorReporter.uploadToPastebin("Ultimate Miner Control Crash")
+        if upload_ok then
+            print()
+            print("=== ERROR REPORT UPLOADED ===")
+            print("Pastebin Code: " .. code)
+            print("URL: https://pastebin.com/" .. code)
+            print()
+            print("Please include this code when reporting!")
+            logged = true
+        else
+            print("Upload failed, error saved locally")
+            logged = true
         end
     end)
+    
+    -- Fallback logging
+    if not logged then
+        local file = fs.open("/control_crash.log", "w")
+        if file then
+            file.writeLine("Ultimate Miner Control Crash")
+            file.writeLine("Time: " .. os.date())
+            file.writeLine("Error: " .. tostring(err))
+            if stack then
+                file.writeLine("Stack trace:")
+                file.writeLine(stack)
+            end
+            file.close()
+            print("Crash saved to: /control_crash.log")
+        end
+    end
     
     print()
     print("Please report this error at:")
     print("https://github.com/httptim/ultimate-miner/issues")
+    print()
+    print("Press any key to exit...")
+    os.pullEvent("key")
 end
 
 -- Run with error handling
 local success, err = xpcall(main, errorHandler)
 
 if not success then
-    print("Control system crashed")
-    print("Check logs for details")
+    -- Error handler already displayed the error
 end
