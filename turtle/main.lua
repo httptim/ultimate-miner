@@ -484,34 +484,59 @@ local function networkMode()
     os.pullEvent("key")
 end
 
+-- Background tick runner
+local function runTicks()
+    while running do
+        -- Run tick functions for modules that need periodic updates
+        pcall(function()
+            if Monitoring and Monitoring.tick then
+                Monitoring.tick()
+            end
+            if Alerts and Alerts.tick then
+                Alerts.tick()
+            end
+            if Cancellation and Cancellation.tick then
+                Cancellation.tick()
+            end
+        end)
+        os.sleep(1) -- Check every second
+    end
+end
+
 -- Main program loop
 local function main()
     -- Initialize
     initialize()
     
-    -- Main loop
-    while running do
-        local choice = showMenu()
-        
-        if choice == 1 then
-            startMining()
-        elseif choice == 2 then
-            configureSettings()
-        elseif choice == 3 then
-            testMovement()
-        elseif choice == 4 then
-            viewStatistics()
-        elseif choice == 5 then
-            networkMode()
-        elseif choice == 6 then
-            ErrorHandler.createErrorReport()
-        elseif choice == 7 then
-            running = false
-        else
-            print("Invalid choice")
-            os.sleep(1)
-        end
-    end
+    -- Start background tick runner in parallel
+    parallel.waitForAny(
+        function()
+            -- Main menu loop
+            while running do
+                local choice = showMenu()
+                
+                if choice == 1 then
+                    startMining()
+                elseif choice == 2 then
+                    configureSettings()
+                elseif choice == 3 then
+                    testMovement()
+                elseif choice == 4 then
+                    viewStatistics()
+                elseif choice == 5 then
+                    networkMode()
+                elseif choice == 6 then
+                    ErrorHandler.createErrorReport()
+                elseif choice == 7 then
+                    running = false
+                else
+                    print("Invalid choice")
+                    os.sleep(1)
+                end
+            end
+        end,
+        runTicks  -- Run ticks in parallel
+    )
     
     -- Cleanup
     print("Shutting down...")

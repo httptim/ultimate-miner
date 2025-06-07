@@ -91,13 +91,10 @@ function Monitoring.init()
     end
     
     -- Start monitoring timers
-    Core.schedule_repeating_task("health_check", HEALTH_CHECK_INTERVAL, function()
-        Monitoring.performHealthCheck()
-    end)
-    
-    Core.schedule_repeating_task("metric_update", METRIC_UPDATE_INTERVAL, function()
-        Monitoring.updateMetrics()
-    end)
+    -- Note: Timer-based monitoring will be handled by main loop
+    -- For now, we'll rely on event-based monitoring
+    monitoring_data.last_health_check = os.epoch("utc")
+    monitoring_data.last_metric_update = os.epoch("utc")
     
     -- Register event handlers
     Core.on("operation_start", function(op_type)
@@ -588,6 +585,27 @@ function Monitoring.getHistory()
     return monitoring_data.history
 end
 
+-- Tick function to be called periodically from main loop
+function Monitoring.tick()
+    if not initialized then
+        return
+    end
+    
+    local current_time = os.epoch("utc")
+    
+    -- Check if health check is due
+    if current_time - monitoring_data.last_health_check >= HEALTH_CHECK_INTERVAL * 1000 then
+        Monitoring.performHealthCheck()
+        monitoring_data.last_health_check = current_time
+    end
+    
+    -- Check if metric update is due
+    if current_time - monitoring_data.last_metric_update >= METRIC_UPDATE_INTERVAL * 1000 then
+        Monitoring.updateMetrics()
+        monitoring_data.last_metric_update = current_time
+    end
+end
+
 -- Shutdown monitoring
 function Monitoring.shutdown()
     Core.log("INFO", "Shutting down monitoring system")
@@ -595,9 +613,7 @@ function Monitoring.shutdown()
     -- Save final data
     Monitoring.save()
     
-    -- Cancel scheduled tasks
-    Core.cancel_task("health_check")
-    Core.cancel_task("metric_update")
+    -- No tasks to cancel - using tick-based system
 end
 
 return Monitoring

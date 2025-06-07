@@ -69,10 +69,8 @@ function Alerts.init()
         Alerts.createError(error_type, error_msg)
     end)
     
-    -- Start alert processor
-    Core.schedule_repeating_task("alert_processor", 1, function()
-        Alerts.processQueue()
-    end)
+    -- Initialize last process time
+    alerts_data.last_process = os.epoch("utc")
     
     return true
 end
@@ -549,6 +547,27 @@ function Alerts.getPriorityName(priority)
         end
     end
     return "UNKNOWN"
+end
+
+-- Tick function to be called periodically from main loop
+function Alerts.tick()
+    local current_time = os.epoch("utc")
+    
+    -- Check if alert processing is due (every 1 second)
+    if current_time - (alerts_data.last_process or 0) >= 1000 then
+        Alerts.processQueue()
+        alerts_data.last_process = current_time
+    end
+end
+
+-- Shutdown
+function Alerts.shutdown()
+    Core.log("INFO", "Shutting down alerts system")
+    
+    -- Process any remaining alerts
+    while #alerts_data.queue > 0 do
+        Alerts.processQueue()
+    end
 end
 
 -- Export constants

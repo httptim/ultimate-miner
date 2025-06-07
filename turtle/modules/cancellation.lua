@@ -53,10 +53,8 @@ function Cancellation.init()
         Cancellation.cancelAll("Emergency stop")
     end)
     
-    -- Periodic cleanup check
-    Core.schedule_repeating_task("cancellation_cleanup", 5, function()
-        Cancellation.cleanupCompleted()
-    end)
+    -- Initialize last cleanup time
+    cancellation_data.last_cleanup = os.epoch("utc")
     
     return true
 end
@@ -185,10 +183,8 @@ function Cancellation.cancelOperation(operation_id, reason)
     Alerts.create(Alerts.TYPES.WARNING, "Cancelling " .. operation.type .. ": " .. reason, 
                  Alerts.PRIORITY.HIGH, {operation_id = operation_id})
     
-    -- Trigger cleanup
-    Core.schedule_task("cancel_" .. operation_id, 0, function()
-        Cancellation.performCleanup(operation_id)
-    end)
+    -- Trigger cleanup immediately
+    Cancellation.performCleanup(operation_id)
     
     return true
 end
@@ -274,9 +270,6 @@ function Cancellation.performDefaultCleanup(operation)
     if turtle then
         -- Already stopped by cancellation check
     end
-    
-    -- Clear any scheduled tasks for this operation
-    Core.cancel_task(operation.id .. "_*")
     
     -- Emit cancellation event
     Core.emit("operation_cancelled", operation.id, operation.type)
@@ -437,6 +430,17 @@ function Cancellation.cancellableWait(operation_id, duration)
     end
     
     return true
+end
+
+-- Tick function to be called periodically from main loop
+function Cancellation.tick()
+    local current_time = os.epoch("utc")
+    
+    -- Check if cleanup is due (every 5 seconds)
+    if current_time - (cancellation_data.last_cleanup or 0) >= 5000 then
+        Cancellation.cleanupCompleted()
+        cancellation_data.last_cleanup = current_time
+    end
 end
 
 -- Shutdown
