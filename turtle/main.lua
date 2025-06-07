@@ -340,25 +340,26 @@ local function configureSettings()
 end
 
 local function testMovement()
-    term.clear()
-    term.setCursorPos(1, 1)
-    
-    print("=== Movement Test ===")
-    print()
-    print("Current position: " .. Navigation.formatPosition())
-    print("Fuel level: " .. tostring(turtle.getFuelLevel()))
-    print()
-    print("Options:")
-    print("1. Test basic movements (forward, back, up, down)")
-    print("2. Test turning (left, right, face direction)")
-    print("3. Test GPS location")
-    print("4. Move to specific coordinates")
-    print("5. Return home")
-    print("6. Back to menu")
-    print()
-    write("Select option: ")
-    
-    local choice = read()
+    while true do
+        term.clear()
+        term.setCursorPos(1, 1)
+        
+        print("=== Movement Test ===")
+        print()
+        print("Current position: " .. Navigation.formatPosition())
+        print("Fuel level: " .. tostring(turtle.getFuelLevel()))
+        print()
+        print("Options:")
+        print("1. Test basic movements (forward, back, up, down)")
+        print("2. Test turning (left, right, face direction)")
+        print("3. Test GPS location")
+        print("4. Move to specific coordinates")
+        print("5. Return home")
+        print("6. Back to menu")
+        print()
+        write("Select option: ")
+        
+        local choice = read()
     
     if choice == "1" then
         print("\nTesting basic movements...")
@@ -446,12 +447,14 @@ local function testMovement()
         end
         
     elseif choice == "6" then
-        return
+        return  -- Exit the loop and return to main menu
     end
     
-    print("\nPress any key to continue...")
-    os.pullEvent("key")
-    testMovement()  -- Show menu again
+    if choice ~= "6" then
+        print("\nPress any key to continue...")
+        os.pullEvent("key")
+    end
+    end  -- End of while loop
 end
 
 local function viewStatistics()
