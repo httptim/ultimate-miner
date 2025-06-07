@@ -58,24 +58,53 @@ Navigation.setHome(pos: table?) -> boolean
 Navigation.getHome() -> table
 
 -- GPS integration
-Navigation.locateGPS() -> boolean, table (position)
+Navigation.locateGPS(timeout: number?, silent: boolean?) -> boolean, table (position)
 Navigation.calibrateGPS() -> boolean, string
+Navigation.recoverGPS() -> boolean, string
+Navigation.setManualPosition(x: number, y: number, z: number, facing: string|number?) -> boolean, string
 
 -- Pathfinding
 Navigation.moveTo(target: table, options: table?) -> boolean, string
 -- Options: {
---   safe: boolean (avoid hazards),
+--   use_pathfinding: boolean (use A* algorithm),
 --   fuel_check: boolean (ensure enough fuel),
---   timeout: number (max seconds)
+--   recalculate_on_block: boolean (recalculate path if blocked),
+--   max_iterations: number (pathfinding iteration limit),
+--   avoid: table (positions to avoid),
+--   no_cache: boolean (don't use cached paths)
 -- }
 
-Navigation.pathTo(target: table) -> table (path), string
+Navigation.moveToSimple(target: table) -> boolean, string
+Navigation.pathTo(target: table, options: table?) -> table (path), string
+-- Options: {
+--   max_distance: number (maximum path distance),
+--   max_iterations: number (algorithm iteration limit),
+--   avoid: table (hash table of positions to avoid),
+--   no_cache: boolean (don't use cached paths)
+-- }
+
 Navigation.estimateFuel(target: table) -> number
+
+-- Emergency protocols
+Navigation.emergencyStop() -> boolean
+Navigation.activateEmergencyReturn(reason: string) -> boolean, table|string
+Navigation.returnHomeEmergency() -> boolean
+Navigation.checkEmergencyConditions() -> boolean, string?
+
+-- Path history
+Navigation.getPathHistory() -> table
+Navigation.getPathHistoryStats() -> table
+Navigation.clearPathHistory() -> nil
+Navigation.backtrack(steps: number?) -> boolean
+Navigation.getLastPosition() -> table?
 
 -- Utilities
 Navigation.face(direction: number) -> boolean
 Navigation.getFacing() -> number (0=north, 1=east, 2=south, 3=west)
 Navigation.getDistance(target: table) -> number
+Navigation.isWithinBounds(pos: table?) -> boolean, string?
+Navigation.clearPathCache() -> nil
+Navigation.getStats() -> table
 ```
 
 ### Inventory Module (`turtle.modules.inventory`)

@@ -133,6 +133,39 @@ local DEFAULT_SCHEMA = {
         default = true,
         description = "Enable all safety checks"
     },
+    use_pathfinding = {
+        type = "boolean",
+        default = true,
+        description = "Use A* pathfinding for navigation"
+    },
+    
+    -- Navigation settings
+    max_distance_from_home = {
+        type = "number",
+        default = 500,
+        min = 50,
+        max = 2000,
+        description = "Maximum allowed distance from home position"
+    },
+    gps_check_interval = {
+        type = "number",
+        default = 300,
+        min = 60,
+        max = 3600,
+        description = "Seconds between GPS position checks"
+    },
+    path_cache_size = {
+        type = "number",
+        default = 100,
+        min = 10,
+        max = 500,
+        description = "Maximum cached pathfinding routes"
+    },
+    emergency_dig_mode = {
+        type = "boolean",
+        default = true,
+        description = "Allow digging during emergency return"
+    },
     
     -- Mining priorities
     ore_priority = {

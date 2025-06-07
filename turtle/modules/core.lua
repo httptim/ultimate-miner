@@ -239,6 +239,15 @@ function Core.generateId(prefix)
     return (prefix or "id") .. "_" .. os.computerID() .. "_" .. id_counter .. "_" .. os.epoch("utc")
 end
 
+-- Get table size (counts all keys, not just numeric)
+function Core.tableSize(tbl)
+    local count = 0
+    for _ in pairs(tbl or {}) do
+        count = count + 1
+    end
+    return count
+end
+
 -- Format time duration
 function Core.formatDuration(seconds)
     if seconds < 60 then
