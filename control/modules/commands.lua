@@ -369,6 +369,11 @@ function Commands.getAvailable()
     return list
 end
 
+-- Send command directly to turtle (wrapper for consistency)
+function Commands.sendToTurtle(turtle_id, message)
+    return Commands.sendCommand(turtle_id, message.type or message.command, message)
+end
+
 -- Shutdown
 function Commands.shutdown()
     Core.log("INFO", "Command dispatcher shutting down")

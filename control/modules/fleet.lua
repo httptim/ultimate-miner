@@ -448,6 +448,71 @@ function Fleet.getStats()
     return stats
 end
 
+-- Request status update from all turtles
+function Fleet.requestStatusUpdate()
+    return Fleet.broadcastCommand("status_update", {})
+end
+
+-- Get all turtle IDs
+function Fleet.getAllTurtleIDs()
+    local ids = {}
+    for id, _ in pairs(Fleet.turtles) do
+        table.insert(ids, id)
+    end
+    return ids
+end
+
+-- Get available turtles (idle or online)
+function Fleet.getAvailableTurtles()
+    local available = {}
+    for id, turtle in pairs(Fleet.turtles) do
+        if turtle.status == "idle" or turtle.status == "online" then
+            table.insert(available, id)
+        end
+    end
+    return available
+end
+
+-- Request status from specific turtle
+function Fleet.requestTurtleStatus(turtle_id)
+    return Commands.sendCommand(turtle_id, "status_update", {})
+end
+
+-- Get recent events (for monitor display)
+function Fleet.getRecentEvents(count)
+    -- TODO: Implement event tracking
+    return {}
+end
+
+-- Get fleet statistics (enhanced version for monitor)
+function Fleet.getFleetStatistics()
+    local stats = Fleet.getStats()
+    
+    -- Add resource breakdown
+    stats.resources = {}
+    stats.uptime_percentage = 0
+    stats.total_ores_found = 0
+    
+    local online_count = 0
+    for id, turtle in pairs(Fleet.turtles) do
+        if turtle.status ~= "offline" then
+            online_count = online_count + 1
+        end
+        
+        -- Aggregate ore counts
+        if turtle.ores_found then
+            stats.total_ores_found = stats.total_ores_found + turtle.ores_found
+        end
+    end
+    
+    local total_count = Fleet.getTurtleCount()
+    if total_count > 0 then
+        stats.uptime_percentage = (online_count / total_count) * 100
+    end
+    
+    return stats
+end
+
 -- Shutdown fleet management
 function Fleet.shutdown()
     Core.log("INFO", "Fleet management shutting down")

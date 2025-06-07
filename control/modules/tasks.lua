@@ -567,6 +567,52 @@ function Tasks.cleanupCompleted(max_age)
     return cleaned
 end
 
+-- Generic task creation function (for UI compatibility)
+function Tasks.createTask(task_data, assigned_turtles)
+    local task = nil
+    
+    -- Create appropriate task based on type
+    if task_data.type == "resource" then
+        task = Tasks.createResourceTask(task_data.ore_type, task_data.quantity, {
+            priority = task_data.priority
+        })
+    elseif task_data.type == "area" then
+        task = Tasks.createAreaTask(task_data.area, {
+            pattern = task_data.pattern
+        })
+    elseif task_data.type == "pattern" then
+        -- Convert pattern task to smart mining
+        task = Tasks.createSmartMiningTask({
+            pattern = task_data.pattern,
+            params = task_data.params
+        })
+    else
+        Core.log("ERROR", "Unknown task type: " .. tostring(task_data.type))
+        return nil
+    end
+    
+    if not task then
+        return nil
+    end
+    
+    -- Queue the task
+    Tasks.queueTask(task)
+    
+    -- Assign to specific turtles if provided
+    if assigned_turtles and #assigned_turtles > 0 then
+        for _, turtle_id in ipairs(assigned_turtles) do
+            -- Try to assign immediately if turtle is available
+            local turtle = Fleet.getTurtle(turtle_id)
+            if turtle and turtle.status == "idle" then
+                Tasks.assignTask(task, turtle_id)
+                break  -- Only assign to one turtle
+            end
+        end
+    end
+    
+    return task.id
+end
+
 -- Shutdown module
 function Tasks.shutdown()
     if not initialized then
