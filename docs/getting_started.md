@@ -258,6 +258,67 @@ From the control computer:
 /control/main.lua tasks queue
 ```
 
+### Phase 9 Features (NEW)
+
+#### Health Monitoring
+```lua
+-- Run diagnostics
+/turtle/main.lua diagnostics
+/turtle/main.lua diagnostics system
+
+-- Check health status
+/turtle/main.lua health check
+```
+
+Features:
+- ✅ Automated health checks every 30 seconds
+- ✅ Ghost turtle detection and recovery
+- ✅ Performance metrics tracking
+- ✅ Resource discovery analytics
+- ✅ Historical session data
+
+#### Data Integrity
+All state data now protected with:
+- ✅ Triple backup system
+- ✅ CRC32 checksum validation
+- ✅ Atomic write operations
+- ✅ Automatic corruption recovery
+- ✅ Version migration support
+
+#### Alert System
+```lua
+-- Configure alerts
+/turtle/main.lua alerts priority high
+/turtle/main.lua alerts enable network
+```
+
+Features:
+- ✅ 5-level priority system
+- ✅ Progress notifications with ETA
+- ✅ Error solutions database
+- ✅ Network alert broadcasting
+- ✅ Sound notifications (with speaker)
+
+#### Cancellable Operations
+Press Ctrl+T to gracefully cancel any operation:
+- ✅ Checkpoint system for safe cancellation
+- ✅ Custom cleanup handlers
+- ✅ Operation progress preservation
+- ✅ Emergency stop all turtles
+
+#### Production Monitoring
+From the control computer:
+```lua
+-- View fleet health
+/control/main.lua fleet health
+
+-- View performance metrics
+/control/main.lua metrics
+
+-- Run remote diagnostics
+/control/main.lua diagnose turtle:5
+```
+
 ## Development Status
 
 This is an active development version. Core systems are functional but many features are still being implemented. Check the [roadmap](/ROADMAP.md) for detailed progress.

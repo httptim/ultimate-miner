@@ -3,16 +3,16 @@
 
 local Core = require("turtle.modules.core")
 local CONSTANTS = require("shared.constants")
+local Integrity = require("turtle.modules.integrity")
 
 local State = {}
 
 -- Module state
 local current_state = {}
-local state_file = "turtle_state.dat"
-local backup_dir = "backups"
-local max_backups = 3
+local state_dir = "/state"
 local state_version = 1
 local initialized = false
+local state_files = {}
 
 -- Default state structure
 local DEFAULT_STATE = {
@@ -32,42 +32,75 @@ local DEFAULT_STATE = {
 }
 
 -- Initialize state module
-function State.init(filename)
-    if filename then
-        state_file = filename
+function State.init()
+    -- Initialize integrity system first
+    Integrity.init()
+    
+    -- Create state directory if it doesn't exist
+    if not fs.exists(state_dir) then
+        fs.makeDir(state_dir)
     end
     
-    -- Create backup directory if it doesn't exist
-    if not fs.exists(backup_dir) then
-        fs.makeDir(backup_dir)
+    -- Define state files
+    state_files = {
+        main = fs.combine(state_dir, "main.json"),
+        position = fs.combine(state_dir, "position.json"),
+        mining = fs.combine(state_dir, "mining.json"),
+        inventory = fs.combine(state_dir, "inventory.json"),
+        network = fs.combine(state_dir, "network.json")
+    }
+    
+    -- Load all state components
+    current_state = {}
+    for name, filepath in pairs(state_files) do
+        local success, data = State.loadFile(name)
+        if success then
+            current_state[name] = data
+        else
+            -- Initialize with defaults for this component
+            current_state[name] = State.getDefaultsForComponent(name)
+        end
     end
     
-    -- Try to load existing state
-    local success, loaded_state = State.load()
-    if success and loaded_state then
-        current_state = loaded_state
-        Core.info("State loaded successfully from " .. state_file)
-    else
-        -- Initialize with defaults
-        current_state = Core.deepCopy(DEFAULT_STATE)
-        Core.info("State initialized with defaults")
-        
-        -- Save initial state
-        State.save()
+    -- Ensure main state has required fields
+    if not current_state.main then
+        current_state.main = Core.deepCopy(DEFAULT_STATE)
     end
     
     initialized = true
+    Core.log("INFO", "State module initialized with integrity protection")
     return true, "State module initialized"
 end
 
--- Calculate simple checksum for data validation
-local function calculateChecksum(data)
-    local str = textutils.serialize(data)
-    local sum = 0
-    for i = 1, #str do
-        sum = sum + string.byte(str, i)
-    end
-    return sum % 65536  -- 16-bit checksum
+-- Get default data for component
+function State.getDefaultsForComponent(name)
+    local defaults = {
+        main = Core.deepCopy(DEFAULT_STATE),
+        position = {
+            x = 0, y = 0, z = 0,
+            facing = CONSTANTS.DIRECTIONS.NORTH,
+            confidence = 1.0,
+            last_gps = nil
+        },
+        mining = {
+            current_pattern = nil,
+            blocks_mined = 0,
+            ores_found = {},
+            efficiency = 0,
+            active = false
+        },
+        inventory = {
+            last_update = os.clock(),
+            slots = {},
+            fuel_level = 0
+        },
+        network = {
+            connected = false,
+            last_heartbeat = 0,
+            control_id = nil
+        }
+    }
+    return defaults[name] or {}
 end
 
 -- Validate state structure
@@ -116,175 +149,160 @@ local function migrateState(state)
     return state, migrated
 end
 
--- Save state to disk with atomic write
-function State.save()
+-- Save specific component to disk with atomic write
+function State.saveFile(name)
     if not initialized then
         return false, "State module not initialized"
     end
     
-    -- Update last save time
-    current_state.last_save = os.epoch("utc")
-    
-    -- Add checksum
-    local state_with_checksum = Core.deepCopy(current_state)
-    state_with_checksum.checksum = calculateChecksum(current_state)
-    
-    -- Serialize state
-    local serialized = textutils.serialize(state_with_checksum)
-    if not serialized then
-        return false, "Failed to serialize state"
+    local filepath = state_files[name]
+    if not filepath then
+        return false, "Unknown state component: " .. name
     end
     
-    -- Write to temporary file first (atomic write)
-    local temp_file = state_file .. ".tmp"
-    local file, err = fs.open(temp_file, "w")
-    if not file then
-        Core.error("Failed to open temp file for writing: " .. tostring(err))
-        return false, "Failed to open temp file"
+    local data = current_state[name]
+    if not data then
+        return false, "No data for component: " .. name
     end
     
-    file.write(serialized)
-    file.close()
-    
-    -- Create backup of current state file if it exists
-    if fs.exists(state_file) then
-        State.backup()
+    -- Use integrity module for atomic write with checksum
+    local success, err = Integrity.atomicWrite(filepath, data)
+    if not success then
+        Core.log("ERROR", "Failed to save " .. name .. ": " .. err)
+        return false, err
     end
     
-    -- Move temp file to actual state file (atomic operation)
-    if fs.exists(state_file) then
-        fs.delete(state_file)
+    Core.log("DEBUG", "Saved state component: " .. name)
+    return true
+end
+
+-- Save all state components or specific component
+function State.save(component_name, data)
+    if not initialized then
+        return false, "State module not initialized"
     end
-    fs.move(temp_file, state_file)
     
-    Core.debug("State saved successfully")
+    -- If specific component provided
+    if component_name and data then
+        current_state[component_name] = data
+        return State.saveFile(component_name)
+    end
+    
+    -- Otherwise save all components
+    -- Update last save time in main state
+    if current_state.main then
+        current_state.main.last_save = os.epoch("utc")
+    end
+    
+    -- Save each component
+    local failures = {}
+    for name, _ in pairs(state_files) do
+        local success, err = State.saveFile(name)
+        if not success then
+            table.insert(failures, name .. ": " .. err)
+        end
+    end
+    
+    if #failures > 0 then
+        Core.log("ERROR", "Failed to save some state components: " .. table.concat(failures, ", "))
+        return false, "Partial save failure"
+    end
+    
+    Core.log("DEBUG", "All state components saved successfully")
     return true, "State saved"
 end
 
--- Load state from disk
+-- Save all state (alias for compatibility)
+function State.saveAll()
+    return State.save()
+end
+
+-- Load specific state file
+function State.loadFile(name)
+    local filepath = state_files[name]
+    if not filepath then
+        return false, "Unknown state component: " .. name
+    end
+    
+    -- Use integrity module for read with checksum validation
+    local success, data = Integrity.read(filepath)
+    if not success then
+        -- Try corruption recovery
+        success, data = Integrity.recoverCorrupted(filepath)
+        if not success then
+            Core.log("WARNING", "Failed to load " .. name .. ", using defaults")
+            return false, "Load failed"
+        end
+    end
+    
+    return true, data
+end
+
+-- Load all state components
 function State.load()
-    -- Check if state file exists
-    if not fs.exists(state_file) then
-        Core.debug("No state file found at " .. state_file)
-        return false, "No state file found"
+    if not initialized then
+        -- Initialize first
+        State.init()
+        return true, current_state
     end
     
-    -- Read file
-    local file, err = fs.open(state_file, "r")
-    if not file then
-        Core.error("Failed to open state file: " .. tostring(err))
-        return false, "Failed to open state file"
+    -- Load each component
+    local loaded_count = 0
+    for name, _ in pairs(state_files) do
+        local success, data = State.loadFile(name)
+        if success then
+            current_state[name] = data
+            loaded_count = loaded_count + 1
+        else
+            -- Use defaults for failed component
+            current_state[name] = State.getDefaultsForComponent(name)
+        end
     end
     
-    local content = file.readAll()
-    file.close()
-    
-    if not content or content == "" then
-        Core.error("State file is empty")
-        return false, "State file is empty"
+    -- Count total state files
+    local total_files = 0
+    for _, _ in pairs(state_files) do
+        total_files = total_files + 1
     end
     
-    -- Deserialize
-    local state = textutils.unserialize(content)
-    if not state then
-        Core.error("Failed to deserialize state")
-        -- Try to restore from backup
-        return State.restore()
-    end
-    
-    -- Verify checksum
-    local saved_checksum = state.checksum
-    state.checksum = nil  -- Remove checksum before validation
-    
-    local calculated_checksum = calculateChecksum(state)
-    if saved_checksum ~= calculated_checksum then
-        Core.error("State checksum mismatch! File may be corrupted")
-        -- Try to restore from backup
-        return State.restore()
-    end
-    
-    -- Validate state
-    local valid, err = State.validateState(state)
-    if not valid then
-        Core.error("State validation failed: " .. err)
-        return State.restore()
-    end
-    
-    -- Migrate if needed
-    state, migrated = migrateState(state)
-    if migrated then
-        -- Save migrated state
-        current_state = state
-        State.save()
-    end
-    
-    return true, state
+    Core.log("INFO", "Loaded " .. loaded_count .. "/" .. total_files .. " state components")
+    return true, current_state
 end
 
 -- Reset state to defaults
 function State.reset()
-    current_state = Core.deepCopy(DEFAULT_STATE)
-    Core.info("State reset to defaults")
+    -- Reset all components to defaults
+    for name, _ in pairs(state_files) do
+        current_state[name] = State.getDefaultsForComponent(name)
+    end
+    
+    Core.log("INFO", "State reset to defaults")
     return State.save()
 end
 
--- Create backup of current state
-function State.backup()
-    if not fs.exists(state_file) then
-        return false, "No state file to backup"
-    end
-    
-    -- Generate backup filename with timestamp
-    local timestamp = os.epoch("utc")
-    local backup_file = fs.combine(backup_dir, "state_" .. timestamp .. ".bak")
-    
-    -- Copy current state to backup
-    fs.copy(state_file, backup_file)
-    
-    -- Manage backup rotation
-    local backups = fs.list(backup_dir)
-    table.sort(backups)
-    
-    -- Remove old backups if we exceed max_backups
-    while #backups > max_backups do
-        local oldest = table.remove(backups, 1)
-        fs.delete(fs.combine(backup_dir, oldest))
-        Core.debug("Removed old backup: " .. oldest)
-    end
-    
-    Core.debug("Backup created: " .. backup_file)
-    return true, backup_file
+-- Verify all state files
+function State.verify()
+    return Integrity.verifyAll()
 end
 
--- Restore from backup
-function State.restore(backup_file)
-    -- If no specific backup file provided, use most recent
-    if not backup_file then
-        local backups = fs.list(backup_dir)
-        if #backups == 0 then
-            Core.error("No backups available to restore")
-            return false, "No backups available"
+-- Restore state from backups if corrupted
+function State.restore()
+    Core.log("WARNING", "Attempting state restoration from backups")
+    
+    local restored_count = 0
+    for name, filepath in pairs(state_files) do
+        local success, data = Integrity.recoverCorrupted(filepath)
+        if success then
+            current_state[name] = data
+            restored_count = restored_count + 1
+        else
+            -- Use defaults if recovery failed
+            current_state[name] = State.getDefaultsForComponent(name)
         end
-        
-        -- Sort to get most recent
-        table.sort(backups)
-        backup_file = fs.combine(backup_dir, backups[#backups])
-        Core.info("Restoring from most recent backup: " .. backup_file)
     end
     
-    -- Check backup exists
-    if not fs.exists(backup_file) then
-        return false, "Backup file not found: " .. backup_file
-    end
-    
-    -- Copy backup to state file
-    if fs.exists(state_file) then
-        fs.delete(state_file)
-    end
-    fs.copy(backup_file, state_file)
-    
-    -- Try to load the restored state
-    return State.load()
+    Core.log("INFO", "Restored " .. restored_count .. " state components")
+    return restored_count > 0
 end
 
 -- Data operation functions
@@ -293,15 +311,30 @@ function State.set(key, value)
         return false
     end
     
-    -- Handle nested keys (e.g., "position.x")
+    -- Handle component-based keys (e.g., "main.position.x" or "position.x")
     local keys = {}
     for k in string.gmatch(key, "[^.]+") do
         table.insert(keys, k)
     end
     
+    -- Determine component
+    local component = "main"  -- Default component
+    local start_idx = 1
+    
+    -- Check if first key is a known component
+    if state_files[keys[1]] then
+        component = keys[1]
+        start_idx = 2
+    end
+    
+    -- Ensure component exists
+    if not current_state[component] then
+        current_state[component] = State.getDefaultsForComponent(component)
+    end
+    
     -- Navigate to the parent table
-    local current = current_state
-    for i = 1, #keys - 1 do
+    local current = current_state[component]
+    for i = start_idx, #keys - 1 do
         if type(current[keys[i]]) ~= "table" then
             current[keys[i]] = {}
         end
@@ -309,9 +342,14 @@ function State.set(key, value)
     end
     
     -- Set the value
-    current[keys[#keys]] = value
+    if #keys >= start_idx then
+        current[keys[#keys]] = value
+    else
+        -- Setting entire component
+        current_state[component] = value
+    end
     
-    Core.debug("State updated: " .. key .. " = " .. tostring(value))
+    Core.log("DEBUG", "State updated: " .. key .. " = " .. tostring(value))
     return true
 end
 
@@ -320,19 +358,34 @@ function State.get(key, default)
         return default
     end
     
-    -- Handle nested keys
+    -- Handle component-based keys
     local keys = {}
     for k in string.gmatch(key, "[^.]+") do
         table.insert(keys, k)
     end
     
+    -- Determine component
+    local component = "main"
+    local start_idx = 1
+    
+    -- Check if first key is a known component
+    if state_files[keys[1]] then
+        component = keys[1]
+        start_idx = 2
+    end
+    
+    -- Check component exists
+    if not current_state[component] then
+        return default
+    end
+    
     -- Navigate to the value
-    local current = current_state
-    for _, k in ipairs(keys) do
-        if type(current) ~= "table" or current[k] == nil then
+    local current = current_state[component]
+    for i = start_idx, #keys do
+        if type(current) ~= "table" or current[keys[i]] == nil then
             return default
         end
-        current = current[k]
+        current = current[keys[i]]
     end
     
     return current
@@ -350,6 +403,8 @@ end
 function State.setPosition(pos)
     if Core.isValidPosition(pos) then
         State.set("position", pos)
+        -- Also save position component immediately for safety
+        State.save("position", current_state.position)
         return true
     end
     return false
@@ -411,14 +466,14 @@ function State.enableAutoSave(interval)
     end)
     
     scheduleAutoSave()
-    Core.info("Auto-save enabled with interval: " .. auto_save_interval .. "s")
+    Core.log("INFO", "Auto-save enabled with interval: " .. auto_save_interval .. "s")
 end
 
 function State.disableAutoSave()
     if auto_save_timer then
         os.cancelTimer(auto_save_timer)
         auto_save_timer = nil
-        Core.info("Auto-save disabled")
+        Core.log("INFO", "Auto-save disabled")
     end
 end
 

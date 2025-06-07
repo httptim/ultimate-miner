@@ -1433,3 +1433,1031 @@ end
 
 parallel.waitForAny(monitorTasks)
 ```
+
+## Phase 9: Production Features APIs
+
+### Monitoring Module (`turtle.modules.monitoring`)
+
+Advanced monitoring and analytics for production environments.
+
+```lua
+-- Initialize module
+Monitoring.init() -> boolean, string
+
+-- Health monitoring
+Monitoring.performHealthCheck() -> boolean, table (issues)
+-- Issues: array of {type, severity, message, solution}
+-- Severity: "critical", "warning"
+
+Monitoring.checkMovementHealth() -> boolean
+-- Tests movement capability in all directions
+
+Monitoring.detectGhostState() -> boolean
+-- Detects if turtle is in ghost state (unresponsive)
+
+Monitoring.attemptGhostRecovery() -> nil
+-- Attempts to recover from ghost state
+
+-- Performance tracking
+Monitoring.startOperation(operation_type: string) -> nil
+-- operation_type: "mine", "move", "turn", "dig", etc.
+
+Monitoring.completeOperation(operation_type: string, success: boolean, data: table?) -> nil
+-- Records operation completion with optional data
+
+Monitoring.updateMetrics() -> nil
+-- Updates real-time performance metrics
+
+Monitoring.getRecentOperations(seconds: number) -> table
+-- Returns operations within last N seconds
+
+-- Resource analytics
+Monitoring.recordResourceDiscovery(resource_type: string, count: number, position: table?) -> nil
+-- Records ore discovery for analytics
+
+Monitoring.updateHotspots(resource_type: string, position: table) -> nil
+-- Updates hotspot detection system
+
+-- Error tracking
+Monitoring.recordError(error_type: string, error_msg: string) -> nil
+
+-- Reports and data access
+Monitoring.getPerformanceReport() -> table
+-- Returns: {
+--   totals: {blocks_mined, blocks_moved, items_collected, fuel_consumed, errors_encountered, time_mining, time_moving, time_idle},
+--   current: {blocks_per_minute, fuel_efficiency, success_rate},
+--   uptime: number
+-- }
+
+Monitoring.getResourceAnalytics() -> table
+-- Returns: {
+--   discoveries: {[resource]: {total, average_vein_size, locations_found, discovery_rate}},
+--   ore_density: {[y_level]: {[resource]: count}},
+--   hotspots: array of {center, resources, discovered, last_updated}
+-- }
+
+Monitoring.getHealthStatus() -> string, table (issues)
+-- Returns: "healthy" or "unhealthy", array of issues
+
+Monitoring.isGhost() -> boolean
+
+Monitoring.getMetrics() -> table
+-- Returns current real-time metrics
+
+Monitoring.getHistory() -> table
+-- Returns historical session data
+
+-- Session management
+Monitoring.createSessionSummary() -> table
+-- Creates and stores session summary
+
+Monitoring.save() -> nil
+-- Saves monitoring data to disk
+
+-- Shutdown
+Monitoring.shutdown() -> nil
+```
+
+### Integrity Module (`turtle.modules.integrity`)
+
+Triple backup system with checksum validation and atomic writes.
+
+```lua
+-- Initialize module
+Integrity.init() -> boolean, string
+
+-- Atomic write with checksum
+Integrity.atomicWrite(filepath: string, data: any) -> boolean, string?
+-- Writes data atomically with checksum validation and triple backups
+
+-- Read with validation
+Integrity.read(filepath: string) -> boolean, any|string
+-- Reads and validates file with checksum, falls back to backups if corrupted
+
+-- Read and validate single file
+Integrity.readAndValidate(filepath: string) -> boolean, any|string, table?
+-- Returns: success, data, package (with version, checksum, timestamp)
+
+-- Version migration
+Integrity.migrateData() -> nil
+-- Automatically migrates old data formats to current version
+
+Integrity.migrateDataStructure(data: table, from_version: string?) -> table
+-- Migrates specific data structure
+
+-- Corruption recovery
+Integrity.recoverCorrupted(filepath: string) -> boolean, any
+-- Attempts to recover corrupted file from backups or partial data
+
+Integrity.attemptPartialRecovery(content: string) -> table?
+-- Tries to extract valid data from corrupted content
+
+-- Default data
+Integrity.getDefaultData(filepath: string) -> table
+-- Returns appropriate default data based on filename
+
+-- Verification
+Integrity.verifyAll() -> boolean, table (results)
+-- Verifies all state files
+-- Results: {[filename]: {valid, version, checksum}}
+
+-- Backup management
+Integrity.getBackupStatus(filepath: string) -> table
+-- Returns: {main: boolean, backups: array of {exists, size}}
+
+Integrity.cleanup() -> nil
+-- Cleans up old backups and temporary files
+
+-- Constants
+Integrity.VERSION -> string (current version)
+```
+
+### Alerts Module (`turtle.modules.alerts`)
+
+Progress notifications, error reporting with solutions, and priority-based alerts.
+
+```lua
+-- Initialize module
+Alerts.init() -> boolean, string
+
+-- Create alert
+Alerts.create(alert_type: string, message: string, priority: number?, data: table?) -> string (alert_id)
+-- alert_type: Alerts.TYPES.ERROR/WARNING/PROGRESS/SUCCESS/INFO
+-- priority: Alerts.PRIORITY.CRITICAL/HIGH/MEDIUM/LOW/INFO (1-5)
+
+-- Create error with solutions
+Alerts.createError(error_type: string, error_msg: string) -> nil
+-- Automatically provides solutions for known errors
+
+-- Progress notifications
+Alerts.startProgress(operation_id: string, operation_name: string, total: number?) -> string
+-- Starts progress tracking for operation
+
+Alerts.updateProgress(operation_id: string, current: number, message: string?) -> nil
+-- Updates progress with optional message
+
+Alerts.completeProgress(operation_id: string, message: string?) -> nil
+-- Marks operation as complete
+
+-- Alert processing
+Alerts.processQueue() -> nil
+-- Processes pending alerts (called automatically)
+
+Alerts.processAlert(alert: table) -> nil
+-- Processes individual alert
+
+-- Display functions
+Alerts.displayLocal(alert: table) -> nil
+-- Shows alert on local display
+
+Alerts.displaySolutions(solutions: table) -> nil
+-- Shows error solutions
+
+Alerts.sendNetworkAlert(alert: table) -> nil
+-- Sends alert over network
+
+Alerts.playAlertSound(priority: number) -> nil
+-- Plays sound if speaker available
+
+-- Data access
+Alerts.getActiveProgress() -> table
+-- Returns array of active progress operations
+
+Alerts.getHistory(count: number?, filter_type: string?, min_priority: number?) -> table
+-- Returns filtered alert history
+
+-- Configuration
+Alerts.configure(settings: table) -> nil
+-- Settings: {enabled, min_priority, network_alerts, local_display, alert_sound}
+
+Alerts.clear() -> nil
+-- Clears alert queue
+
+-- Utilities
+Alerts.getPriorityName(priority: number) -> string
+
+-- Constants
+Alerts.PRIORITY = {CRITICAL = 1, HIGH = 2, MEDIUM = 3, LOW = 4, INFO = 5}
+Alerts.TYPES = {ERROR = "error", WARNING = "warning", PROGRESS = "progress", SUCCESS = "success", INFO = "info"}
+```
+
+### Cancellation Module (`turtle.modules.cancellation`)
+
+Graceful operation cancellation with cleanup.
+
+```lua
+-- Initialize module
+Cancellation.init() -> boolean, string
+
+-- Register cancellable operation
+Cancellation.registerOperation(operation_id: string, operation_type: string, cleanup_handler: function?) -> boolean
+-- cleanup_handler signature: function(operation: table) -> nil
+
+-- Check cancellation
+Cancellation.shouldCancel(operation_id: string) -> boolean, string?
+-- Returns: should_cancel, reason
+
+-- Create checkpoint
+Cancellation.checkpoint(operation_id: string, checkpoint_name: string, data: table?) -> boolean
+-- Saves checkpoint for potential rollback
+
+-- Update progress
+Cancellation.updateProgress(operation_id: string, progress: number, message: string?) -> boolean, string?
+-- Returns false with reason if should cancel
+
+-- Cancel operations
+Cancellation.cancelOperation(operation_id: string, reason: string?) -> boolean
+
+Cancellation.cancelAll(reason: string) -> nil
+-- Cancels all active operations
+
+-- Cleanup
+Cancellation.performCleanup(operation_id: string) -> nil
+-- Executes cleanup handlers
+
+Cancellation.performDefaultCleanup(operation: table) -> boolean, string
+-- Default cleanup actions
+
+-- Complete operation
+Cancellation.completeOperation(operation_id: string, result_data: table?) -> boolean
+-- Marks operation as successfully completed
+
+-- Management
+Cancellation.cleanupCompleted() -> nil
+-- Removes old completed operations
+
+-- Status
+Cancellation.getOperationStatus(operation_id: string) -> table?
+-- Returns: {id, type, state, progress, start_time, duration, checkpoints}
+
+Cancellation.getActiveOperations() -> table
+-- Returns array of active operations
+
+Cancellation.getStatistics() -> table
+-- Returns: {stats: {...}, active_operations, global_cancel}
+
+-- Control
+Cancellation.resetGlobalCancel() -> nil
+
+-- Utility helpers
+Cancellation.cancellableLoop(operation_id: string, iterations: number, callback: function) -> boolean, string?, number
+-- Returns: success, cancel_reason, completed_iterations
+-- callback signature: function(iteration: number) -> nil
+
+Cancellation.cancellableWait(operation_id: string, duration: number) -> boolean, string?
+-- Waits with cancellation checking
+
+-- Constants
+Cancellation.OPERATION_STATE = {
+    RUNNING = "running",
+    CANCELLING = "cancelling", 
+    CANCELLED = "cancelled",
+    COMPLETED = "completed",
+    FAILED = "failed"
+}
+
+-- Shutdown
+Cancellation.shutdown() -> nil
+```
+
+### Diagnostics Module (`turtle.modules.diagnostics`)
+
+Comprehensive diagnostics for troubleshooting and analysis.
+
+```lua
+-- Initialize module
+Diagnostics.init() -> boolean, string
+
+-- Run diagnostics
+Diagnostics.runDiagnostics(category: string?) -> table (report)
+-- category: TEST_CATEGORIES.SYSTEM/MOVEMENT/INVENTORY/NETWORK/STORAGE/SAFETY/PERFORMANCE/DATA
+-- If no category, runs all tests
+
+-- Test counting
+Diagnostics.countTests(category: string?) -> number
+
+-- Get tests for category
+Diagnostics.getTestsForCategory(category: string) -> table
+-- Returns array of {name, func}
+
+-- Individual test execution
+Diagnostics.runTest(test: table) -> table
+-- Returns: {name, status, message, details, duration, timestamp}
+-- status: "passed", "failed", "warning"
+
+-- Category tests available:
+-- SYSTEM: Turtle API, Fuel System, Computer Info, Peripheral Detection
+-- MOVEMENT: Movement Capability, Position Tracking, GPS Signal, Pathfinding
+-- INVENTORY: Inventory Space, Item Detection, Tool Slot, Fuel Items
+-- NETWORK: Modem Presence, Network Connection, Control Response, Message Handling
+-- STORAGE: Storage Detection, Storage Access, Home Position
+-- SAFETY: Hazard Detection, Emergency Protocols, Safety Bounds
+-- PERFORMANCE: Memory Usage, Operation Speed, Mining Efficiency
+-- DATA: State Files, Data Integrity, Backup System
+
+-- Report generation
+Diagnostics.generateReport() -> table
+-- Returns: {
+--   timestamp, duration, summary: {passed, failed, warnings},
+--   categories: {[category]: {passed, failed, warnings, tests}},
+--   recommendations: array of strings
+-- }
+
+-- Category identification
+Diagnostics.getCategoryForTest(test_name: string) -> string
+
+-- Recommendations
+Diagnostics.generateRecommendations(report: table) -> table (recommendations)
+
+-- Data access
+Diagnostics.getLastResults() -> table
+-- Returns last diagnostic run results
+
+-- Export
+Diagnostics.exportResults(filename: string?) -> boolean, string
+-- Exports results to file
+
+-- Constants
+Diagnostics.TEST_CATEGORIES = {
+    SYSTEM = "system",
+    MOVEMENT = "movement", 
+    INVENTORY = "inventory",
+    NETWORK = "network",
+    STORAGE = "storage",
+    SAFETY = "safety",
+    PERFORMANCE = "performance",
+    DATA = "data"
+}
+```
+
+### Updated State Module
+
+The State module has been updated to use the Integrity module for data protection.
+
+```lua
+-- Now uses component-based storage with integrity protection
+State.init() -> boolean, string
+-- Initializes with integrity system
+
+State.save(component_name: string?, data: table?) -> boolean, string
+-- Saves specific component or all components with atomic writes
+
+State.load() -> boolean, table
+-- Loads all components with checksum validation
+
+State.verify() -> boolean, table
+-- Verifies all state files using integrity system
+
+State.restore() -> boolean
+-- Attempts to restore from backups if corrupted
+
+-- Component access
+State.get(key: string, default: any?) -> any
+-- Supports component prefixes: "position.x", "mining.blocks_mined"
+
+State.set(key: string, value: any) -> boolean
+-- Automatically determines component and saves atomically
+```
+
+## Phase 9 Events
+
+### Production Feature Events
+
+```lua
+-- Monitoring events
+"health_status" -> {healthy: boolean, issues: table}
+"operation_start" -> {operation_type: string}
+"operation_complete" -> {operation_type: string, success: boolean, data: table}
+"resource_discovered" -> {resource_type: string, count: number, position: table}
+"resource_analytics_updated" -> {resource_type: string, count: number, position: table}
+"ghost_recovery_attempted" -> nil
+
+-- Alert events
+"alert" -> {alert_type: string, message: string, priority: number, data: table}
+"progress_update" -> {operation_id: string, progress: number, message: string}
+"error" -> {error_type: string, error_msg: string}
+
+-- Cancellation events
+"terminate" -> nil
+"emergency_stop" -> nil
+"operation_cancelled" -> {operation_id: string, operation_type: string}
+"operation_completed" -> {operation_id: string, operation_type: string, result_data: table}
+
+-- Diagnostic events
+"run_diagnostics" -> {category: string?}
+```
+
+## Phase 10: Optimization Modules
+
+### Memory Optimizer Module (`turtle.modules.memory_optimizer`)
+
+Analyzes and optimizes memory usage across all modules.
+
+```lua
+-- Initialize module
+MemoryOptimizer.init() -> boolean, string
+
+-- Record memory sample
+MemoryOptimizer.recordSample() -> table (sample)
+-- Returns: {used, max, percentage, free, timestamp}
+
+-- Get memory statistics
+MemoryOptimizer.getStats() -> table
+-- Returns: {
+--   current: {used, max, percentage, free},
+--   average_percentage: number,
+--   peak_percentage: number,
+--   samples_collected: number,
+--   module_memory: table,
+--   optimization_count: number
+-- }
+
+-- Perform memory optimization
+MemoryOptimizer.performOptimization(strategy: number) -> boolean, number, table
+-- Strategies:
+--   1 = CLEAR_CACHES
+--   2 = REDUCE_HISTORY
+--   3 = COMPACT_TABLES
+--   4 = UNLOAD_MODULES
+--   5 = GARBAGE_COLLECT
+-- Returns: success, freed_bytes, actions_taken
+
+-- Get optimization recommendations
+MemoryOptimizer.getRecommendations() -> table
+-- Returns array of {priority, action, reason}
+
+-- Track operation for periodic GC
+MemoryOptimizer.trackOperation() -> nil
+
+-- Start automatic monitoring
+MemoryOptimizer.startMonitoring(interval: number?) -> nil
+-- Default interval: 30 seconds
+
+-- Export memory report
+MemoryOptimizer.exportReport(filename: string?) -> boolean, string
+
+-- Shutdown
+MemoryOptimizer.shutdown() -> boolean
+```
+
+### Network Optimizer Module (`turtle.modules.network_optimizer`)
+
+Reduces network traffic through batching, compression, and smart protocols.
+
+```lua
+-- Initialize module
+NetworkOptimizer.init() -> boolean, string
+
+-- Queue message for batching
+NetworkOptimizer.queueMessage(recipient: number?, message: table) -> boolean
+-- Returns true if queued, false to send immediately
+
+-- Send batched messages
+NetworkOptimizer.sendBatch() -> nil
+
+-- Optimize heartbeat messages
+NetworkOptimizer.optimizeHeartbeat(status_data: table) -> table
+-- Returns optimized message (full, delta, or minimal)
+
+-- Process received optimized message
+NetworkOptimizer.processMessage(message: table) -> table|table[]
+-- Handles batch, compressed, delta messages
+
+-- Get optimization statistics
+NetworkOptimizer.getStats() -> table
+-- Returns: {
+--   messages_sent: number,
+--   messages_batched: number,
+--   batch_ratio: number,
+--   bytes_saved: number,
+--   compression_ratio: number,
+--   queue_size: number,
+--   heartbeat_optimized: boolean
+-- }
+
+-- Handle timer events
+NetworkOptimizer.handleTimer(timer_id: number) -> nil
+
+-- Force flush queued messages
+NetworkOptimizer.flush() -> nil
+
+-- Configure settings
+NetworkOptimizer.configure(settings: table) -> nil
+-- Settings: {batch_timeout, max_batch_size, compression_threshold}
+
+-- Reset statistics
+NetworkOptimizer.resetStats() -> nil
+
+-- Shutdown
+NetworkOptimizer.shutdown() -> boolean
+```
+
+### Pattern Optimizer Module (`turtle.modules.pattern_optimizer`)
+
+Optimizes mining patterns for efficiency and reduced movements.
+
+```lua
+-- Initialize module
+PatternOptimizer.init() -> boolean, string
+
+-- Optimize strip pattern based on conditions
+PatternOptimizer.optimizeStripPattern(options: table) -> table
+-- Adjusts spacing, length based on ore density and fuel
+
+-- Get next efficient mining position
+PatternOptimizer.getNextPosition(current_pos: table, pattern_type: string, ore_positions: table?) -> table
+-- Returns optimal next position considering ore clusters
+
+-- Cluster nearby ores
+PatternOptimizer.clusterOres(ore_positions: table) -> table
+-- Returns array of {center, ores, value}
+
+-- Calculate movement efficiency
+PatternOptimizer.calculateEfficiency(movements: table, blocks_mined: number) -> number
+-- Returns efficiency score (0-1)
+
+-- Optimize movement sequence
+PatternOptimizer.optimizeMovements(movements: table) -> table
+-- Removes redundant movements and backtracks
+
+-- Get pattern-specific optimizations
+PatternOptimizer.getPatternOptimizations(pattern_type: string) -> table
+
+-- Cache movement pattern
+PatternOptimizer.cachePattern(pattern_id: string, movements: table) -> nil
+
+-- Get cached pattern
+PatternOptimizer.getCachedPattern(pattern_id: string) -> table?
+
+-- Update pattern statistics
+PatternOptimizer.updateStats(pattern_type: string, stats: table) -> nil
+-- Stats: {blocks_mined, moves, turns, ores, fuel, time, movements}
+
+-- Get optimization recommendations
+PatternOptimizer.getRecommendations(current_stats: table) -> table
+-- Returns array of {pattern?, issue, suggestion, ...}
+
+-- Clear old data
+PatternOptimizer.clearOldData(max_age: number?) -> number
+-- Returns number of entries cleared
+
+-- Get statistics
+PatternOptimizer.getStats() -> table
+-- Returns: {
+--   scanned_blocks: number,
+--   cached_patterns: number,
+--   pattern_stats: table,
+--   memory_usage: number
+-- }
+
+-- Shutdown
+PatternOptimizer.shutdown() -> boolean
+```
+
+### Performance Config Module (`turtle.modules.performance_config`)
+
+Central configuration for memory and performance optimization settings.
+
+```lua
+-- Get setting with path
+PerformanceConfig.get(path: string, default: any?) -> any
+-- Example: PerformanceConfig.get("memory.path_history_size", 500)
+
+-- Set setting with path
+PerformanceConfig.set(path: string, value: any) -> nil
+
+-- Apply low memory profile
+PerformanceConfig.applyLowMemoryProfile() -> nil
+-- Reduces limits and disables non-essential features
+
+-- Apply high performance profile
+PerformanceConfig.applyHighPerformanceProfile() -> nil
+-- Increases limits and enables all features
+
+-- Get adaptive settings based on memory
+PerformanceConfig.getAdaptiveSettings(memory_percentage: number) -> string, table
+-- Returns: level ("critical", "high", "medium", "low"), settings
+
+-- Export configuration
+PerformanceConfig.export() -> table
+
+-- Import configuration
+PerformanceConfig.import(config: table) -> boolean
+
+-- Check if feature enabled
+PerformanceConfig.isFeatureEnabled(feature: string) -> boolean
+
+-- Check if module should be lazy loaded
+PerformanceConfig.shouldLazyLoad(module_name: string) -> boolean
+```
+
+### Circular Buffer Module (`shared.circular_buffer`)
+
+Memory-efficient circular buffer for history tracking.
+
+```lua
+-- Create new buffer
+CircularBuffer.new(max_size: number) -> CircularBuffer
+
+-- Add item to buffer
+buffer:push(item: any) -> nil
+
+-- Get item by index (1-based from oldest)
+buffer:get(index: number) -> any?
+
+-- Get most recent item
+buffer:peek() -> any?
+
+-- Get oldest item
+buffer:peekOldest() -> any?
+
+-- Remove and return most recent
+buffer:pop() -> any?
+
+-- Get all items as array
+buffer:toArray() -> table
+
+-- Get recent N items
+buffer:getRecent(n: number?) -> table
+
+-- Clear buffer
+buffer:clear() -> nil
+
+-- Get size
+buffer:size() -> number
+
+-- Check if empty
+buffer:isEmpty() -> boolean
+
+-- Check if full
+buffer:isFull() -> boolean
+
+-- Resize buffer
+buffer:resize(new_size: number) -> nil
+
+-- Find item
+buffer:find(predicate: function) -> any?, number?
+-- predicate: function(item, index) -> boolean
+
+-- Filter items
+buffer:filter(predicate: function) -> table
+
+-- Apply function to all items
+buffer:forEach(func: function) -> nil
+
+-- Get memory usage estimate
+buffer:getMemoryUsage() -> table
+-- Returns: {buffer_size, used_slots, estimated_bytes, overhead_bytes}
+
+-- Compact buffer
+buffer:compact() -> nil
+
+-- Iterator
+buffer:iter() -> function
+-- for i, item in buffer:iter() do ... end
+
+-- Serialize for persistence
+buffer:serialize() -> table
+
+-- Deserialize from persistence
+CircularBuffer.deserialize(data: table) -> CircularBuffer
+```
+
+### Code Optimizer Module (`shared.code_optimizer`)
+
+Analyzes and suggests code optimizations.
+
+```lua
+-- Analyze code for optimization opportunities
+CodeOptimizer.analyzeCode(code: string) -> table
+-- Returns array of {line, code, issue, suggestion, severity}
+
+-- Optimize table operations
+CodeOptimizer.optimizeTableOperations(code: string) -> string
+
+-- Optimize string operations
+CodeOptimizer.optimizeStringOperations(code: string) -> string
+
+-- Generate optimization report
+CodeOptimizer.generateReport(file_content: string, filename: string) -> table
+-- Returns: {
+--   filename: string,
+--   issues: table,
+--   line_count: number,
+--   optimization_score: number,
+--   summary: table
+-- }
+
+-- Apply CC:Tweaked specific optimizations
+CodeOptimizer.applyCCTweakedOptimizations(code: string) -> string
+
+-- Get memory optimization suggestions
+CodeOptimizer.getMemoryOptimizations(code: string) -> table
+-- Returns array of {type, suggestion}
+
+-- Analyze module file
+CodeOptimizer.analyzeModule(module_path: string) -> table?, string?
+
+-- Analyze entire project
+CodeOptimizer.analyzeProject(base_path: string) -> table
+-- Returns: {
+--   total_files: number,
+--   total_issues: number,
+--   total_lines: number,
+--   average_score: number,
+--   files: table
+-- }
+
+-- Export optimization report
+CodeOptimizer.exportReport(report: table, output_file: string) -> boolean
+```
+
+## Production Usage Examples
+
+### Health Monitoring Example
+```lua
+local Monitoring = require("turtle.modules.monitoring")
+local Alerts = require("turtle.modules.alerts")
+
+-- Initialize
+Monitoring.init()
+Alerts.init()
+
+-- Start operation with monitoring
+Monitoring.startOperation("mining")
+
+-- Mine with health checks
+local function mineWithHealth()
+    local healthy, issues = Monitoring.performHealthCheck()
+    
+    if not healthy then
+        -- Critical issues found
+        for _, issue in ipairs(issues) do
+            if issue.severity == "critical" then
+                Alerts.createError("health", issue.message)
+                return false
+            end
+        end
+    end
+    
+    -- Proceed with mining
+    local success = turtle.dig()
+    Monitoring.completeOperation("mining", success)
+    
+    return success
+end
+```
+
+### Cancellable Operation Example
+```lua
+local Cancellation = require("turtle.modules.cancellation")
+local Alerts = require("turtle.modules.alerts")
+
+-- Register large operation
+Cancellation.registerOperation("large_quarry", "quarry", function(op)
+    -- Custom cleanup
+    Navigation.returnHome()
+    Inventory.storeAll()
+end)
+
+-- Start progress tracking
+local progress_id = Alerts.startProgress("large_quarry", "Large Quarry Operation", 10000)
+
+-- Mine with cancellation support
+local success, reason, completed = Cancellation.cancellableLoop("large_quarry", 10000, function(i)
+    -- Check and update every 10 blocks
+    if i % 10 == 0 then
+        Cancellation.updateProgress("large_quarry", i, "Mining block " .. i)
+        Alerts.updateProgress(progress_id, i)
+    end
+    
+    -- Create checkpoint every 100 blocks
+    if i % 100 == 0 then
+        Cancellation.checkpoint("large_quarry", "block_" .. i, {
+            position = Navigation.getPosition(),
+            fuel = turtle.getFuelLevel()
+        })
+    end
+    
+    -- Do actual mining
+    turtle.dig()
+    turtle.forward()
+end)
+
+if success then
+    Cancellation.completeOperation("large_quarry", {blocks_mined = completed})
+    Alerts.completeProgress(progress_id, "Quarry complete!")
+else
+    print("Operation cancelled: " .. reason)
+end
+```
+
+### Diagnostic Integration Example
+```lua
+local Diagnostics = require("turtle.modules.diagnostics")
+local Alerts = require("turtle.modules.alerts")
+
+-- Run full diagnostics
+local report = Diagnostics.runDiagnostics()
+
+-- Check results
+if report.summary.failed > 0 then
+    -- Critical failures
+    Alerts.create(Alerts.TYPES.ERROR, 
+        "Diagnostics failed: " .. report.summary.failed .. " tests failed",
+        Alerts.PRIORITY.HIGH,
+        {report = report}
+    )
+    
+    -- Show recommendations
+    for _, rec in ipairs(report.recommendations) do
+        print("- " .. rec)
+    end
+else
+    Alerts.create(Alerts.TYPES.SUCCESS,
+        "All diagnostics passed!",
+        Alerts.PRIORITY.INFO
+    )
+end
+
+-- Export for analysis
+Diagnostics.exportResults("/logs/diagnostic_report.json")
+```
+
+### Memory Optimization Example
+```lua
+local MemoryOptimizer = require("turtle.modules.memory_optimizer")
+local PerformanceConfig = require("turtle.modules.performance_config")
+
+-- Initialize
+MemoryOptimizer.init()
+
+-- Start automatic monitoring
+MemoryOptimizer.startMonitoring(30)
+
+-- Main loop with memory tracking
+while true do
+    -- Track operations
+    MemoryOptimizer.trackOperation()
+    
+    -- Check memory periodically
+    if os.clock() % 60 == 0 then
+        local sample = MemoryOptimizer.recordSample()
+        
+        if sample.percentage > 80 then
+            -- Apply low memory profile
+            PerformanceConfig.applyLowMemoryProfile()
+            
+            -- Force optimization
+            MemoryOptimizer.performOptimization(1)  -- Clear caches
+            MemoryOptimizer.performOptimization(5)  -- GC
+        end
+    end
+    
+    -- Do work...
+    turtle.dig()
+    turtle.forward()
+end
+```
+
+### Network Optimization Example
+```lua
+local NetworkOptimizer = require("turtle.modules.network_optimizer")
+
+-- Initialize
+NetworkOptimizer.init()
+
+-- Configure for high-latency network
+NetworkOptimizer.configure({
+    batch_timeout = 5,  -- 5 seconds
+    max_batch_size = 20,  -- Up to 20 messages
+    compression_threshold = 50  -- Compress messages > 50 bytes
+})
+
+-- Send status updates efficiently
+local function sendStatus(data)
+    -- Queue for batching instead of immediate send
+    if NetworkOptimizer.queueMessage(control_id, data) then
+        -- Message queued
+        return
+    end
+    
+    -- Fall back to immediate send if needed
+    rednet.send(control_id, data)
+end
+
+-- Heartbeat with optimization
+local function sendHeartbeat()
+    local status = {
+        id = os.getComputerID(),
+        pos = Navigation.getPosition(),
+        fuel = turtle.getFuelLevel(),
+        status = current_status
+    }
+    
+    -- Optimize heartbeat (sends delta or minimal)
+    local optimized = NetworkOptimizer.optimizeHeartbeat(status)
+    rednet.broadcast(optimized)
+end
+```
+
+### Pattern Optimization Example
+```lua
+local PatternOptimizer = require("turtle.modules.pattern_optimizer")
+
+-- Initialize
+PatternOptimizer.init()
+
+-- Optimize strip mining based on conditions
+local function optimizedStripMine()
+    local options = {
+        length = 100,
+        spacing = 3,
+        strips = 10
+    }
+    
+    -- Get optimized parameters
+    local optimized = PatternOptimizer.optimizeStripPattern(options)
+    
+    -- Mine with optimization
+    for strip = 1, optimized.strips do
+        local movements = {}
+        
+        for block = 1, optimized.length do
+            table.insert(movements, Navigation.getPosition())
+            turtle.dig()
+            turtle.forward()
+            
+            -- Track pattern efficiency
+            if block % 10 == 0 then
+                PatternOptimizer.updateStats("strip", {
+                    blocks_mined = 10,
+                    moves = #movements,
+                    ores = countOresFound()
+                })
+            end
+        end
+        
+        -- Optimize movements for return
+        local return_path = PatternOptimizer.optimizeMovements(movements)
+        followPath(return_path)
+    end
+end
+```
+
+### Circular Buffer Usage Example
+```lua
+local CircularBuffer = require("shared.circular_buffer")
+
+-- Create buffer for movement history
+local movement_history = CircularBuffer.new(500)
+
+-- Track movements
+local function trackMovement()
+    local pos = Navigation.getPosition()
+    movement_history:push({
+        position = pos,
+        timestamp = os.clock(),
+        fuel = turtle.getFuelLevel()
+    })
+    
+    -- Check if we're repeating movements
+    local recent = movement_history:getRecent(10)
+    if detectLoop(recent) then
+        print("Movement loop detected!")
+    end
+end
+
+-- Find when we were at a position
+local function findPositionInHistory(target_pos)
+    return movement_history:find(function(entry)
+        return entry.position.x == target_pos.x and
+               entry.position.y == target_pos.y and
+               entry.position.z == target_pos.z
+    end)
+end
+
+-- Analyze movement efficiency
+local function analyzeMovements()
+    local total_distance = 0
+    local total_fuel = 0
+    
+    movement_history:forEach(function(entry, i)
+        if i > 1 then
+            local prev = movement_history:get(i - 1)
+            total_distance = total_distance + 
+                math.abs(entry.position.x - prev.position.x) +
+                math.abs(entry.position.y - prev.position.y) +
+                math.abs(entry.position.z - prev.position.z)
+            total_fuel = total_fuel + (prev.fuel - entry.fuel)
+        end
+    end)
+    
+    return {
+        moves = movement_history:size(),
+        distance = total_distance,
+        fuel_used = total_fuel,
+        efficiency = total_distance / math.max(1, total_fuel)
+    }
+end
+```

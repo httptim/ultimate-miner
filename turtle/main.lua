@@ -5,7 +5,7 @@
 local module_loader = require("/shared/module_loader")
 
 -- Initialize program environment
-print("Ultimate Miner v2.2.0 - Turtle")
+print("Ultimate Miner v2.5.0 - Turtle")
 print("Initializing...")
 
 local modules, env_type = module_loader.init_program("turtle")
@@ -19,6 +19,22 @@ local Inventory = require("turtle.modules.inventory")
 local Mining = require("turtle.modules.mining")
 local Safety = require("turtle.modules.safety")
 local Storage = require("turtle.modules.storage")
+local Network = require("turtle.modules.network")
+local Optimization = require("turtle.modules.optimization")
+local Targeting = require("turtle.modules.targeting")
+local Area = require("turtle.modules.area")
+local SmartMining = require("turtle.modules.smart_mining")
+local Integrity = require("turtle.modules.integrity")
+local Monitoring = require("turtle.modules.monitoring")
+local Alerts = require("turtle.modules.alerts")
+local Cancellation = require("turtle.modules.cancellation")
+local Diagnostics = require("turtle.modules.diagnostics")
+-- Phase 10 optimization modules
+local MemoryOptimizer = require("turtle.modules.memory_optimizer")
+local NetworkOptimizer = require("turtle.modules.network_optimizer")
+local PatternOptimizer = require("turtle.modules.pattern_optimizer")
+local PerformanceConfig = require("turtle.modules.performance_config")
+local CircularBuffer = require("shared.circular_buffer")
 local CONSTANTS = require("shared.constants")
 
 -- Main program state
@@ -80,11 +96,79 @@ local function initialize()
         error("Failed to initialize Storage: " .. tostring(err))
     end
     
-    -- TODO: Initialize other modules as they are created
-    -- Network.init()
+    -- Initialize network module
+    success, err = Network.init()
+    if not success then
+        print("Warning: Network not available - " .. tostring(err))
+    end
+    
+    -- Initialize optimization module
+    success, err = Optimization.init()
+    if not success then
+        error("Failed to initialize Optimization: " .. tostring(err))
+    end
+    
+    -- Initialize Phase 8 modules
+    success, err = Targeting.init()
+    if not success then
+        error("Failed to initialize Targeting: " .. tostring(err))
+    end
+    
+    success, err = Area.init()
+    if not success then
+        error("Failed to initialize Area: " .. tostring(err))
+    end
+    
+    success, err = SmartMining.init()
+    if not success then
+        error("Failed to initialize SmartMining: " .. tostring(err))
+    end
+    
+    -- Initialize Phase 9 production modules
+    -- Note: Integrity is already initialized by State module
+    
+    success, err = Monitoring.init()
+    if not success then
+        error("Failed to initialize Monitoring: " .. tostring(err))
+    end
+    
+    success, err = Alerts.init()
+    if not success then
+        error("Failed to initialize Alerts: " .. tostring(err))
+    end
+    
+    success, err = Cancellation.init()
+    if not success then
+        error("Failed to initialize Cancellation: " .. tostring(err))
+    end
+    
+    success, err = Diagnostics.init()
+    if not success then
+        error("Failed to initialize Diagnostics: " .. tostring(err))
+    end
+    
+    -- Initialize Phase 10 optimization modules
+    success, err = MemoryOptimizer.init()
+    if not success then
+        error("Failed to initialize MemoryOptimizer: " .. tostring(err))
+    end
+    
+    success, err = NetworkOptimizer.init()
+    if not success then
+        error("Failed to initialize NetworkOptimizer: " .. tostring(err))
+    end
+    
+    success, err = PatternOptimizer.init()
+    if not success then
+        error("Failed to initialize PatternOptimizer: " .. tostring(err))
+    end
+    
+    -- Performance config doesn't need init
+    -- Start memory monitoring
+    MemoryOptimizer.startMonitoring(30)
     
     initialized = true
-    Core.info("All modules initialized successfully")
+    Core.log("INFO", "All modules initialized successfully")
 end
 
 -- Display turtle status

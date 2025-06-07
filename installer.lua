@@ -1,7 +1,7 @@
 -- Ultimate Miner Installer
 -- Automated installation script for turtle and control computer components
 
-local VERSION = "2.3.0"
+local VERSION = "2.5.0"
 local GITHUB_BASE = "https://raw.githubusercontent.com/httptim/ultimate-miner/main/"
 local GITHUB_REPO = "https://github.com/httptim/ultimate-miner"
 
@@ -17,7 +17,9 @@ local install_config = {
 local components = {
     -- Shared components (needed by both turtle and computer)
     shared = {
-        "shared/constants.lua"
+        "shared/constants.lua",
+        "shared/circular_buffer.lua",
+        "shared/code_optimizer.lua"
     },
     
     -- Turtle-specific components
@@ -37,6 +39,17 @@ local components = {
         "turtle/modules/targeting.lua",
         "turtle/modules/area.lua",
         "turtle/modules/smart_mining.lua",
+        -- Phase 9 modules
+        "turtle/modules/monitoring.lua",
+        "turtle/modules/integrity.lua",
+        "turtle/modules/alerts.lua",
+        "turtle/modules/cancellation.lua",
+        "turtle/modules/diagnostics.lua",
+        -- Phase 10 optimization modules
+        "turtle/modules/memory_optimizer.lua",
+        "turtle/modules/network_optimizer.lua",
+        "turtle/modules/pattern_optimizer.lua",
+        "turtle/modules/performance_config.lua",
         -- Mining patterns
         "turtle/patterns/strip.lua",
         "turtle/patterns/branch.lua",
