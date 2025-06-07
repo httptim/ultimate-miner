@@ -358,7 +358,7 @@ function SmartMining.mine(options)
             local success, result = Targeting.processNext()
             if success then
                 Core.log("INFO", "Resource target completed")
-                continue
+                -- Continue to next iteration
             end
         end
         

@@ -174,23 +174,20 @@ function Optimization.followOreVein(start_ore_type, options)
             
             -- Skip if already mined
             local key = posKey(check_pos.x, check_pos.y, check_pos.z)
-            if mined_positions[key] then
-                goto next_adjacent
-            end
-            
-            -- Determine actual direction to face
-            local inspect_dir = offset.dir
-            if offset.dir == "right" then
-                Navigation.turnRight()
-                inspect_dir = "forward"
-            elseif offset.dir == "left" then
-                Navigation.turnLeft()
-                inspect_dir = "forward"
-            elseif offset.dir == "back" then
-                Navigation.turnRight()
-                Navigation.turnRight()
-                inspect_dir = "forward"
-            end
+            if not mined_positions[key] then
+                -- Determine actual direction to face
+                local inspect_dir = offset.dir
+                if offset.dir == "right" then
+                    Navigation.turnRight()
+                    inspect_dir = "forward"
+                elseif offset.dir == "left" then
+                    Navigation.turnLeft()
+                    inspect_dir = "forward"
+                elseif offset.dir == "back" then
+                    Navigation.turnRight()
+                    Navigation.turnRight()
+                    inspect_dir = "forward"
+                end
             
             -- Check for ore
             local success, block_data = Mining.inspect(inspect_dir)
@@ -226,20 +223,17 @@ function Optimization.followOreVein(start_ore_type, options)
                 end
             end
             
-            -- Turn back to original facing
-            if offset.dir == "right" then
-                Navigation.turnLeft()
-            elseif offset.dir == "left" then
-                Navigation.turnRight()
-            elseif offset.dir == "back" then
-                Navigation.turnRight()
-                Navigation.turnRight()
-            end
-            
-            ::next_adjacent::
+                -- Turn back to original facing
+                if offset.dir == "right" then
+                    Navigation.turnLeft()
+                elseif offset.dir == "left" then
+                    Navigation.turnRight()
+                elseif offset.dir == "back" then
+                    Navigation.turnRight()
+                    Navigation.turnRight()
+                end
+            end -- end if not mined_positions
         end
-        
-        ::continue::
     end
     
     -- Calculate cluster centers for analysis

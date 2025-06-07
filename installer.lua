@@ -367,10 +367,16 @@ local function main()
         
         if choice == 1 then
             -- Install for current device
-            perform_install(install_config.device_type)
-            print()
-            print("Press any key to continue...")
-            os.pullEvent("key")
+            if perform_install(install_config.device_type) then
+                print()
+                print("Installation complete! Restarting...")
+                os.sleep(2)
+                os.reboot()
+            else
+                print()
+                print("Press any key to continue...")
+                os.pullEvent("key")
+            end
         elseif choice == 2 then
             -- Install both
             perform_install("both")

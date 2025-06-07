@@ -321,19 +321,14 @@ function Mining.mineVein(max_blocks)
         local key = posKey(pos)
         
         -- Skip if already checked
-        if checked_positions[key] then
-            goto continue
-        end
-        checked_positions[key] = true
-        
-        -- Move to position if not there
-        local current = Navigation.getPosition()
-        if current.x ~= pos.x or current.y ~= pos.y or current.z ~= pos.z then
-            local success = Navigation.moveTo(pos)
-            if not success then
-                goto continue
-            end
-        end
+        if not checked_positions[key] then
+            checked_positions[key] = true
+            
+            -- Move to position if not there
+            local current = Navigation.getPosition()
+            if current.x ~= pos.x or current.y ~= pos.y or current.z ~= pos.z then
+                local success = Navigation.moveTo(pos)
+                if success then
         
         -- Check all 6 directions
         local directions = {
@@ -380,8 +375,9 @@ function Mining.mineVein(max_blocks)
                 Navigation.turnLeft()
             end
         end
-        
-        ::continue::
+                    end -- end if success (moveTo)
+                end -- end if need to move
+            end -- end if not already checked
     end
     
     Core.info("Vein mining complete. Mined " .. mined .. " blocks")
@@ -633,9 +629,7 @@ function Mining.findOre(radius)
         for dy = -radius, radius do
             for dz = -radius, radius do
                 -- Skip current position
-                if dx == 0 and dy == 0 and dz == 0 then
-                    goto continue
-                end
+                if not (dx == 0 and dy == 0 and dz == 0) then
                 
                 -- Calculate target position
                 local target = {
@@ -665,8 +659,7 @@ function Mining.findOre(radius)
                         end
                     end
                 end
-                
-                ::continue::
+                end -- end if not current position
             end
         end
     end

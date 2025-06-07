@@ -660,9 +660,7 @@ function Navigation.pathTo(target, options)
             local neighbor_hash = positionHash(neighbor)
             
             -- Skip if in closed set or avoid list
-            if closed_set[neighbor_hash] or avoid_list[neighbor_hash] then
-                goto continue
-            end
+            if not (closed_set[neighbor_hash] or avoid_list[neighbor_hash]) then
             
             -- Calculate tentative g score
             local tentative_g = current_node.g + neighbor_data.cost
@@ -684,8 +682,7 @@ function Navigation.pathTo(target, options)
                 neighbor_node.f = neighbor_node.g + neighbor_node.h
                 neighbor_node.parent = current_node
             end
-            
-            ::continue::
+            end -- end if not in closed/avoid set
         end
         
         -- Yield periodically
