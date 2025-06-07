@@ -52,6 +52,14 @@ Since this is a CC:Tweaked Lua project for Minecraft, standard development comma
    - Limitations and best practices
    - Example usage patterns
 
+### Tool Usage Optimization
+**Use tools in parallel when beneficial**:
+- When reading multiple files, use parallel tool calls to read them simultaneously
+- When writing/creating multiple independent files, batch the operations
+- When updating documentation and code, make parallel updates
+- When searching for information across multiple files, use concurrent searches
+- This significantly improves development speed and efficiency
+
 ### Testing in CC:Tweaked
 - Test individual modules in-game using the Lua interpreter
 - Use `print()` statements for debugging (no console.log)

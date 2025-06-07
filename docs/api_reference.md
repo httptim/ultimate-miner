@@ -78,6 +78,55 @@ Navigation.getFacing() -> number (0=north, 1=east, 2=south, 3=west)
 Navigation.getDistance(target: table) -> number
 ```
 
+### Inventory Module (`turtle.modules.inventory`)
+
+Manages turtle inventory and item handling.
+
+```lua
+-- Initialize inventory
+Inventory.init() -> boolean, string
+
+-- Inventory scanning
+Inventory.scanInventory() -> table (inventory_cache)
+Inventory.getInventory(force_scan: boolean?) -> table
+
+-- Item classification
+Inventory.classifyItem(item_name: string) -> string
+-- Classifications: "ore", "fuel", "valuable", "tool", "building", "junk", "unknown"
+
+-- Item management
+Inventory.getItemsByCategory(category: string) -> table (slot -> item)
+Inventory.getItemCount(item_name: string) -> number
+Inventory.findItem(item_name: string) -> number?, number? (slot, count)
+Inventory.findEmptySlot() -> number?
+Inventory.selectItem(item_name: string) -> boolean, string
+
+-- Inventory status
+Inventory.getUsedSlots() -> number
+Inventory.getFreeSlots() -> number
+Inventory.isFull() -> boolean
+Inventory.getSummary() -> table (summary)
+
+-- Fuel management
+Inventory.consumeFuel(target_level: number?) -> boolean, string
+
+-- Space management
+Inventory.makeSpace(slots_needed: number?, protect_categories: table?) -> boolean, number (slots_freed)
+Inventory.compact() -> boolean, number (moves)
+Inventory.sort() -> boolean
+
+-- Tool management
+Inventory.checkTools() -> table (tool_status)
+
+-- Storage operations
+Inventory.dropAll(protect_categories: table?) -> boolean, number (items_dropped)
+Inventory.storeItems(direction: string?, categories: table?) -> boolean, number (items_stored)
+-- Direction: "front", "up", "down"
+
+-- Shutdown
+Inventory.shutdown() -> boolean
+```
+
 ### Mining Module (`turtle.modules.mining`)
 
 Controls mining operations and pattern execution.
