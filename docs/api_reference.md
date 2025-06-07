@@ -531,29 +531,95 @@ Storage.shutdown() -> boolean
 
 ### Network Module (`turtle.modules.network`)
 
-Handles all network communication.
+Handles all network communication using rednet protocol.
 
 ```lua
 -- Initialize network
 Network.init(protocol: string?) -> boolean, string
+-- Default protocol: "ULTIMATE_MINER_V2"
 
 -- Connection management
 Network.connect() -> boolean, string
+-- Starts heartbeat and broadcasts presence
+
 Network.disconnect() -> boolean
+-- Stops heartbeat and notifies network
+
 Network.isConnected() -> boolean
+-- Checks connection status and timeout
 
 -- Messaging
 Network.send(recipient: number, message: table) -> boolean
+-- Sends message to specific computer with protocol
+
 Network.broadcast(message: table) -> boolean
+-- Broadcasts message to all computers with protocol
+
 Network.receive(timeout: number?) -> boolean, table (message)
+-- Receives messages filtered by protocol
+-- Returns: success, {sender: number, message: table}
 
 -- Protocol handling
-Network.setProtocol(protocol: string) -> boolean
 Network.registerHandler(msg_type: string, handler: function) -> boolean
+-- Registers handler for specific message types
+-- Handler signature: function(sender: number, data: table)
+
+-- Control computer management
+Network.setControlComputer(id: number) -> nil
+-- Sets the control computer ID for targeted messages
+
+Network.getControlComputer() -> number?
+-- Returns current control computer ID
 
 -- Status reporting
 Network.sendStatus(status: table) -> boolean
+-- Sends status to control computer or broadcasts
+-- Auto-adds type, id, and timestamp
+
 Network.requestCommand() -> boolean, table (command)
+-- Requests command from control computer
+-- Waits for response with 5-second timeout
+
+-- Network discovery
+Network.discover(service_type: string?, timeout: number?) -> table
+-- Discovers network services
+-- Default service_type: "control_computer", timeout: 2
+-- Returns array of {id: number, info: table, distance: number?}
+
+-- Modem management
+Network.openModem() -> boolean, string
+-- Finds and opens best available modem
+-- Priority: ender > wireless > wired
+
+-- Heartbeat management
+Network.startHeartbeat() -> nil
+-- Starts automatic heartbeat (5-10 second intervals)
+
+Network.stopHeartbeat() -> nil
+-- Stops automatic heartbeat
+
+-- Recovery
+Network.reconnect() -> boolean, string
+-- Attempts to reconnect after failure
+
+-- Statistics
+Network.getStats() -> table
+-- Returns: {
+--   connected: boolean,
+--   computer_id: number,
+--   protocol: string,
+--   modem_type: string ("ender", "wireless", "wired"),
+--   modem_side: string,
+--   control_computer: number?,
+--   last_heartbeat: number?,
+--   heartbeat_interval: number,
+--   last_message_time: number?,
+--   message_handlers: table (array of registered types)
+-- }
+
+-- Shutdown
+Network.shutdown() -> boolean
+-- Disconnects and closes modem
 ```
 
 ### State Module (`turtle.modules.state`)

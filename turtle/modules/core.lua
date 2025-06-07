@@ -248,6 +248,15 @@ function Core.tableSize(tbl)
     return count
 end
 
+-- Get keys from a table
+function Core.tableKeys(tbl)
+    local keys = {}
+    for k, _ in pairs(tbl or {}) do
+        table.insert(keys, k)
+    end
+    return keys
+end
+
 -- Format time duration
 function Core.formatDuration(seconds)
     if seconds < 60 then

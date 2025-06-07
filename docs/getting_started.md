@@ -191,12 +191,17 @@ Mining.startAdaptiveMining({
 - ✅ Enhanced ore vein following with 3D search
 - ✅ Pattern efficiency tracking and recommendations
 - ✅ Dynamic pattern adjustment based on ore density
+- ✅ Network communication with Rednet protocol
+- ✅ Automatic heartbeat system
+- ✅ Modem detection (ender, wireless, wired)
+- ✅ Network discovery mechanism
+- ✅ Message filtering and handlers
 
 ### Coming Soon
-- 🚧 Network communication
-- 🚧 Fleet management
 - 🚧 Control computer interface
+- 🚧 Fleet management
 - 🚧 Multi-turtle coordination
+- 🚧 Task assignment system
 
 ## Development Status
 
