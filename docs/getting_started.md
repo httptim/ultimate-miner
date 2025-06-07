@@ -105,9 +105,15 @@ From the main menu:
 - ✅ Safety radius enforcement
 - ✅ Inventory management
 - ✅ Mining operations
-- ✅ Safety systems
+- ✅ Safety systems with hazard detection
 - ✅ Storage integration
 - ✅ Strip mining pattern
+- ✅ Falling block support placement
+- ✅ Cave-in prevention with support pillars
+- ✅ Lost position recovery protocols
+- ✅ Network reconnection after failure
+- ✅ State recovery after restart
+- ✅ Basic mob detection and combat
 
 ### Coming Soon
 - 🚧 Network communication

@@ -246,6 +246,52 @@ Safety.checkVoidBelow(max_depth: number?) -> boolean, number (depth)
 Safety.checkHealth() -> boolean, string
 -- Placeholder for future health monitoring
 
+-- Falling block detection and support
+Safety.detectFallingBlockAbove() -> boolean, string (block_name)
+-- Detects if there's a falling block (sand, gravel, etc.) above
+
+Safety.placeFallingBlockSupport() -> boolean, string
+-- Places temporary support (torch or block) for falling blocks
+
+Safety.handleFallingBlockHazard() -> boolean
+-- Handles falling block hazard by backing away and waiting
+
+-- Structural integrity and cave-in prevention
+Safety.checkStructuralIntegrity(mining_area: table?) -> table
+-- Returns: {score: number, safe: boolean, issues: table, needs_support: boolean}
+
+Safety.placeSupportPillar() -> boolean, number (height)
+-- Places a support pillar from floor to ceiling
+
+Safety.planSupportPillars(area: table) -> table (pillar_positions)
+-- Plans support pillar positions for large excavations
+
+Safety.preMiningCheck(direction: string?) -> boolean, string
+-- Comprehensive pre-mining safety check including falling blocks
+
+-- Recovery systems
+Safety.recoverLostPosition() -> boolean, table (position), table (methods)
+-- Attempts to recover position using GPS, state, landmarks, or dead reckoning
+
+Safety.recoverState() -> table (recovery_report)
+-- Comprehensive state recovery after restart
+
+Safety.reconnectNetwork() -> boolean, string|number
+-- Attempts to reconnect to network after connection loss
+
+Safety.findLandmarks() -> table? (position)
+-- Searches for landmark blocks to determine position
+
+Safety.reconstructFromHistory(history: table) -> table? (position)
+-- Reconstructs position from movement history
+
+-- Mob detection and combat (limited by CC:Tweaked)
+Safety.detectMob() -> boolean, table (indicators)
+-- Detects possible mob presence through spawners or movement blocking
+
+Safety.combatProtocol() -> boolean, number (attacks_made)
+-- Basic combat protocol using turtle.attack()
+
 -- Configuration
 Safety.setSafetyRadius(radius: number) -> boolean
 -- Sets maximum distance from home
