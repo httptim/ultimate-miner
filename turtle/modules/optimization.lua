@@ -149,11 +149,7 @@ function Optimization.followOreVein(start_ore_type, options)
         local current = Navigation.getPosition()
         if current.x ~= pos.x or current.y ~= pos.y or current.z ~= pos.z then
             local success = Navigation.moveTo(pos, {use_pathfinding = true})
-            if not success then
-                Core.debug("Cannot reach ore at " .. posKey(pos.x, pos.y, pos.z))
-                goto continue
-            end
-        end
+            if success then
         
         -- Check all 6 adjacent blocks
         local adjacent = {
@@ -234,6 +230,10 @@ function Optimization.followOreVein(start_ore_type, options)
                 end
             end -- end if not mined_positions
         end
+            else
+                Core.debug("Cannot reach ore at " .. posKey(pos.x, pos.y, pos.z))
+            end -- end if success (navigation)
+        end -- end if need to move
     end
     
     -- Calculate cluster centers for analysis
