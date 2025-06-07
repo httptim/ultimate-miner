@@ -241,20 +241,25 @@ end
 
 -- Mining menu
 local function startMining()
-    term.clear()
-    term.setCursorPos(1, 1)
+    -- Disable background ticks while in this menu
+    local old_ticks = ticks_enabled
+    ticks_enabled = false
     
-    print("=== Mining Operations ===")
-    print()
-    print("1. Strip Mining")
-    print("2. Single Block Test")
-    print("3. 3x3 Tunnel")
-    print("4. Vein Mining Test")
-    print("5. Back to Main Menu")
-    print()
-    write("Select option: ")
-    
-    local choice = read()
+    while true do
+        term.clear()
+        term.setCursorPos(1, 1)
+        
+        print("=== Mining Operations ===")
+        print()
+        print("1. Strip Mining")
+        print("2. Single Block Test")
+        print("3. 3x3 Tunnel")
+        print("4. Vein Mining Test")
+        print("5. Back to Main Menu")
+        print()
+        write("Select option: ")
+        
+        local choice = read()
     
     if choice == "1" then
         -- Strip mining
@@ -319,13 +324,16 @@ local function startMining()
             print("No ores found nearby")
         end
         
-    elseif choice == "5" then
-        return
-    end
-    
-    print("\nPress any key to continue...")
-    os.pullEvent("key")
-    startMining()  -- Show menu again
+        elseif choice == "5" then
+            ticks_enabled = old_ticks  -- Restore tick state
+            return
+        end
+        
+        if choice ~= "5" then
+            print("\nPress any key to continue...")
+            os.pullEvent("key")
+        end
+    end  -- End of while loop
 end
 
 local function configureSettings()
