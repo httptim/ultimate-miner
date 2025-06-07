@@ -211,7 +211,7 @@ function ErrorReporter.createCrashReport(error_msg, stack_trace)
     
     -- Log the crash
     ErrorReporter.logError("CRASH", error_msg, stack_trace, {
-        memory_used = collectgarbage("count"),
+        memory_used = "N/A (collectgarbage not available in CC:Tweaked)",
         uptime = os.clock()
     })
     

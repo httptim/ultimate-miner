@@ -38,19 +38,28 @@ local optimizer_data = {
 
 -- Get current memory usage
 local function getMemoryUsage()
-    -- CC:Tweaked doesn't have direct memory access, so we estimate
-    -- based on table sizes and string lengths
+    -- CC:Tweaked doesn't have collectgarbage, so we estimate
+    -- based on table sizes and approximate memory usage
     local usage = 0
     local max_memory = 2048 * 1024  -- Assume 2MB limit
     
-    -- Collect garbage first for accurate reading
-    collectgarbage("collect")
+    -- Estimate memory usage by counting objects
+    local object_count = 0
+    local string_bytes = 0
     
-    -- Use garbage collector stats if available
-    local mem_kb = collectgarbage("count")
-    if mem_kb then
-        usage = mem_kb * 1024
+    -- Count global objects (rough estimate)
+    for k, v in pairs(_G) do
+        object_count = object_count + 1
+        if type(k) == "string" then
+            string_bytes = string_bytes + #k
+        end
+        if type(v) == "string" then
+            string_bytes = string_bytes + #v
+        end
     end
+    
+    -- Very rough estimate: each object ~100 bytes, strings as counted
+    usage = (object_count * 100) + string_bytes
     
     return {
         used = usage,
@@ -250,10 +259,10 @@ function memory_optimizer.performOptimization(strategy)
         end
         
     elseif strategy == OPTIMIZATION_STRATEGIES.GARBAGE_COLLECT then
-        -- Force garbage collection
-        collectgarbage("collect")
-        collectgarbage("collect")  -- Run twice for thorough cleanup
-        table.insert(actions_taken, "Forced garbage collection")
+        -- CC:Tweaked doesn't have collectgarbage
+        -- Instead, we can clear some internal caches
+        optimizer_data.memory_samples = compactTable(optimizer_data.memory_samples)
+        table.insert(actions_taken, "Cleared internal caches")
     end
     
     local after = getMemoryUsage()
@@ -290,9 +299,16 @@ end
 function memory_optimizer.trackOperation()
     optimizer_data.operation_count = optimizer_data.operation_count + 1
     
-    -- Periodic garbage collection
+    -- Periodic cache clearing (CC:Tweaked doesn't have collectgarbage)
     if optimizer_data.operation_count >= optimizer_data.gc_frequency then
-        collectgarbage("step", 100)
+        -- Clear old optimization history entries
+        if #optimizer_data.optimization_history > 50 then
+            local new_history = {}
+            for i = #optimizer_data.optimization_history - 49, #optimizer_data.optimization_history do
+                table.insert(new_history, optimizer_data.optimization_history[i])
+            end
+            optimizer_data.optimization_history = new_history
+        end
         optimizer_data.operation_count = 0
     end
 end
@@ -432,8 +448,9 @@ function memory_optimizer.shutdown()
         os.cancelTimer(optimizer_data.monitor_timer)
     end
     
-    -- Final cleanup
-    collectgarbage("collect")
+    -- Final cleanup - clear internal data
+    optimizer_data.memory_samples = {}
+    optimizer_data.optimization_history = {}
     
     return true
 end

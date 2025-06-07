@@ -648,17 +648,38 @@ end
 
 -- Performance Tests
 function Diagnostics.testMemoryUsage()
-    -- Estimate memory usage
-    local memory_estimate = collectgarbage("count")
+    -- CC:Tweaked doesn't have collectgarbage
+    -- We can estimate memory usage based on table sizes
+    local tables_checked = 0
+    local estimated_kb = 0
     
-    if memory_estimate > 500 then
-        return "warning", "High memory usage: " .. math.floor(memory_estimate) .. "KB", {
-            memory_kb = memory_estimate
+    -- Count major data structures
+    for k, v in pairs(_G) do
+        if type(v) == "table" then
+            tables_checked = tables_checked + 1
+            -- Very rough estimate: each table ~1KB
+            estimated_kb = estimated_kb + 1
+        end
+    end
+    
+    -- Add estimate for loaded modules
+    for k, v in pairs(package.loaded) do
+        if type(v) == "table" then
+            estimated_kb = estimated_kb + 5  -- Modules are larger
+        end
+    end
+    
+    -- Very rough approximation
+    if estimated_kb > 500 then
+        return "warning", "High estimated memory usage: ~" .. math.floor(estimated_kb) .. "KB", {
+            memory_kb = estimated_kb,
+            tables_counted = tables_checked
         }
     end
     
-    return "passed", "Memory usage: " .. math.floor(memory_estimate) .. "KB", {
-        memory_kb = memory_estimate
+    return "passed", "Estimated memory usage: ~" .. math.floor(estimated_kb) .. "KB", {
+        memory_kb = estimated_kb,
+        tables_counted = tables_checked
     }
 end
 
