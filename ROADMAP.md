@@ -106,18 +106,18 @@ Ultimate Miner is a comprehensive mining automation system for CC:Tweaked that t
 
 #### 5.1 Pattern Implementations
 - [x] Strip mining with configurable spacing
-- [ ] Branch mining with main tunnels
-- [ ] Spiral mining pattern
-- [ ] Quarry (rectangular excavation)
-- [ ] 3x3 tunnel mining
-- [ ] Adaptive pattern selection
+- [x] Branch mining with main tunnels
+- [x] Spiral mining pattern
+- [x] Quarry (rectangular excavation)
+- [x] 3x3 tunnel mining
+- [x] Adaptive pattern selection
 
 #### 5.2 Pattern Optimization
-- [ ] Torch placement system
-- [ ] Ore vein following
-- [ ] Y-level optimization per ore type
-- [ ] Pattern efficiency tracking
-- [ ] Dynamic pattern adjustment
+- [x] Torch placement system
+- [x] Ore vein following
+- [x] Y-level optimization per ore type
+- [x] Pattern efficiency tracking
+- [x] Dynamic pattern adjustment
 
 ### Phase 6: Network Foundation (Weeks 11-12)
 **Goal**: Establish network communication infrastructure

@@ -1,5 +1,6 @@
--- Basic Mining Module
--- Handles block breaking, ore detection, and basic mining operations
+-- Mining Module
+-- Handles block breaking, ore detection, and mining operations
+-- Integrates with Patterns and Optimization modules for advanced mining
 
 local Mining = {}
 
@@ -10,6 +11,10 @@ local Config = require("turtle.modules.config")
 local Navigation = require("turtle.modules.navigation")
 local Inventory = require("turtle.modules.inventory")
 local CONSTANTS = require("shared.constants")
+
+-- Lazy-load pattern modules to avoid circular dependencies
+local Patterns = nil
+local Optimization = nil
 
 -- Module state
 local initialized = false
@@ -474,6 +479,129 @@ function Mining.getStats()
         blocks_per_minute = blocks_per_minute,
         by_type = mining_stats.by_type
     }
+end
+
+-- Execute a mining pattern
+function Mining.executePattern(pattern_type, options)
+    -- Lazy load Patterns module
+    if not Patterns then
+        Patterns = require("turtle.modules.patterns")
+        Patterns.init()
+    end
+    
+    Core.info("Executing mining pattern: " .. pattern_type)
+    return Patterns.execute(pattern_type, options)
+end
+
+-- Mine for specific ore with optimization
+function Mining.mineForOre(ore_type, options)
+    options = options or {}
+    
+    -- Lazy load Optimization module
+    if not Optimization then
+        Optimization = require("turtle.modules.optimization")
+        Optimization.init()
+    end
+    
+    Core.info("Mining for specific ore: " .. ore_type)
+    
+    -- Get optimal Y level
+    local optimal_y, y_data = Optimization.getOptimalYLevel(ore_type)
+    local current_pos = Navigation.getPosition()
+    
+    -- Move to optimal Y level if needed
+    if math.abs(current_pos.y - optimal_y) > 8 then
+        Core.info(string.format("Moving to optimal Y level %d for %s", optimal_y, ore_type))
+        Navigation.moveTo({
+            x = current_pos.x,
+            y = optimal_y,
+            z = current_pos.z
+        })
+    end
+    
+    -- Get pattern recommendation
+    local recommendations = Optimization.recommendPattern({ore_type = ore_type})
+    local pattern = options.pattern or recommendations[1].pattern
+    
+    -- Execute pattern with ore-specific options
+    local pattern_options = {
+        target_ore = ore_type,
+        length = options.length or 50,
+        torch_interval = 8,
+        return_home = options.return_home
+    }
+    
+    return Mining.executePattern(pattern, pattern_options)
+end
+
+-- Enhanced vein mining with optimization
+function Mining.mineVeinOptimized(ore_type, max_blocks)
+    -- Lazy load Optimization module
+    if not Optimization then
+        Optimization = require("turtle.modules.optimization")
+        Optimization.init()
+    end
+    
+    return Optimization.followOreVein(ore_type, {
+        max_blocks = max_blocks or 64,
+        search_radius = 2,
+        prioritize_clusters = true
+    })
+end
+
+-- Start adaptive mining
+function Mining.startAdaptiveMining(options)
+    -- Lazy load modules
+    if not Patterns then
+        Patterns = require("turtle.modules.patterns")
+        Patterns.init()
+    end
+    
+    if not Optimization then
+        Optimization = require("turtle.modules.optimization")
+        Optimization.init()
+    end
+    
+    Core.info("Starting adaptive mining")
+    
+    -- If targeting multiple ores, calculate best Y level
+    if options.ore_types and #options.ore_types > 1 then
+        local best_y = Optimization.calculateBestYLevel(options.ore_types)
+        local current_pos = Navigation.getPosition()
+        
+        if math.abs(current_pos.y - best_y) > 8 then
+            Core.info(string.format("Moving to optimal Y level %d for multiple ores", best_y))
+            Navigation.moveTo({
+                x = current_pos.x,
+                y = best_y,
+                z = current_pos.z
+            })
+        end
+    end
+    
+    return Patterns.adaptiveMine(options)
+end
+
+-- Get available mining patterns
+function Mining.getPatterns()
+    -- Lazy load Patterns module
+    if not Patterns then
+        Patterns = require("turtle.modules.patterns")
+        Patterns.init()
+    end
+    
+    return Patterns.getAvailablePatterns()
+end
+
+-- Get mining recommendations
+function Mining.getRecommendations(target)
+    -- Lazy load Optimization module
+    if not Optimization then
+        Optimization = require("turtle.modules.optimization")
+        Optimization.init()
+    end
+    
+    return Optimization.recommendPattern(target)
 end
 
 -- Check if we can mine in a direction

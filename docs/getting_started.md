@@ -48,7 +48,7 @@ installer
 ### Turtle Controls
 
 From the main menu:
-- **1** - Start Mining (coming soon)
+- **1** - Start Mining
 - **2** - Configure Settings
 - **3** - Test Movement
 - **4** - View Statistics
@@ -62,6 +62,77 @@ From the main menu:
 - Test GPS location (if available)
 - Move to specific coordinates
 - Return to home position
+
+### Mining Patterns
+
+The turtle supports several mining patterns:
+
+#### Strip Mining
+```lua
+Mining.executePattern("strip", {
+    length = 50,      -- Length of each strip
+    spacing = 3,      -- Blocks between strips
+    strips = 5,       -- Number of strips
+    torch_interval = 8 -- Torch placement interval
+})
+```
+
+#### Branch Mining
+```lua
+Mining.executePattern("branch", {
+    main_length = 100,    -- Main tunnel length
+    branch_length = 20,   -- Side branch length
+    branch_spacing = 5,   -- Space between branches
+    torch_interval = 8
+})
+```
+
+#### Spiral Mining
+```lua
+Mining.executePattern("spiral", {
+    max_radius = 32,  -- Maximum spiral radius
+    layers = 3,       -- Number of layers
+    torch_interval = 8
+})
+```
+
+#### Quarry
+```lua
+Mining.executePattern("quarry", {
+    width = 16,       -- Quarry width
+    length = 16,      -- Quarry length
+    depth = nil,      -- nil = to bedrock
+    return_home = true
+})
+```
+
+#### Adaptive Mining
+```lua
+Mining.startAdaptiveMining({
+    target_ore = "diamond",  -- Specific ore to target
+    max_blocks = 1000,       -- Maximum blocks to mine
+    base_pattern = "branch"  -- Starting pattern
+})
+```
+
+### Ore-Specific Mining
+
+To mine for specific ores at optimal Y levels:
+
+```lua
+-- Mine for diamonds
+Mining.mineForOre("diamond", {
+    pattern = "branch",
+    length = 100,
+    return_home = true
+})
+
+-- Mine for multiple ores
+Mining.startAdaptiveMining({
+    ore_types = {"iron", "coal"},
+    max_blocks = 2000
+})
+```
 
 ## Requirements
 
@@ -115,12 +186,17 @@ From the main menu:
 - ✅ State recovery after restart
 - ✅ Basic mob detection and combat
 
+- ✅ Advanced mining patterns (strip, branch, spiral, quarry, adaptive)
+- ✅ Y-level optimization for all ore types
+- ✅ Enhanced ore vein following with 3D search
+- ✅ Pattern efficiency tracking and recommendations
+- ✅ Dynamic pattern adjustment based on ore density
+
 ### Coming Soon
 - 🚧 Network communication
 - 🚧 Fleet management
-- 🚧 Additional mining patterns
 - 🚧 Control computer interface
-- 🚧 Advanced features
+- 🚧 Multi-turtle coordination
 
 ## Development Status
 

@@ -183,12 +183,37 @@ Mining.digMove(direction: string?) -> boolean, string
 Mining.mineVein(max_blocks: number?) -> boolean, number (blocks_mined)
 -- Default max_blocks: 64
 
+Mining.mineVeinOptimized(ore_type: string, max_blocks: number?) -> boolean, table (vein_data)
+-- Enhanced vein mining with 3D search and clustering
+
 -- Area mining
 Mining.mineAround() -> boolean, number (blocks_mined)
 -- Mines all 6 adjacent blocks
 
 Mining.mine3x3(length: number?) -> boolean, number (length_mined)
 -- Creates a 3x3 tunnel
+
+-- Pattern execution
+Mining.executePattern(pattern_type: string, options: table) -> boolean
+-- Pattern types: "strip", "branch", "spiral", "quarry", "tunnel_3x3", "adaptive"
+-- Options vary by pattern
+
+Mining.getPatterns() -> table
+-- Returns available patterns with descriptions
+
+-- Ore-specific mining
+Mining.mineForOre(ore_type: string, options: table?) -> boolean
+-- Mines at optimal Y level for specific ore
+-- Options: {pattern: string?, length: number?, return_home: boolean?}
+
+Mining.startAdaptiveMining(options: table) -> boolean
+-- Adaptive mining that adjusts based on ore density
+-- Options: {ore_types: table?, target_ore: string?, max_blocks: number?}
+
+-- Recommendations
+Mining.getRecommendations(target: table) -> table
+-- Returns pattern recommendations based on target
+-- Target: {ore_type: string?, area: boolean?, exploration: boolean?}
 
 -- Ore detection
 Mining.findOre(radius: number?) -> table (ore_locations)
@@ -205,6 +230,144 @@ Mining.resetStats() -> boolean
 
 -- Shutdown
 Mining.shutdown() -> boolean
+```
+
+### Patterns Module (`turtle.modules.patterns`)
+
+Implements various mining patterns.
+
+```lua
+-- Initialize patterns
+Patterns.init() -> boolean, string
+
+-- Execute pattern
+Patterns.execute(pattern_type: string, options: table) -> boolean
+-- Pattern types: "strip", "branch", "spiral", "quarry", "tunnel_3x3", "adaptive"
+
+-- Strip Mining
+Patterns.stripMine(options: table) -> boolean
+-- Options: {
+--   length: number (50),
+--   spacing: number (3),
+--   strips: number (5),
+--   torch_interval: number (8),
+--   return_home: boolean (true)
+-- }
+
+-- Branch Mining
+Patterns.branchMine(options: table) -> boolean
+-- Options: {
+--   main_length: number (100),
+--   branch_length: number (20),
+--   branch_spacing: number (5),
+--   torch_interval: number (8),
+--   return_home: boolean (true)
+-- }
+
+-- Spiral Mining
+Patterns.spiralMine(options: table) -> boolean
+-- Options: {
+--   max_radius: number (32),
+--   layers: number (1),
+--   torch_interval: number (8),
+--   return_home: boolean (true)
+-- }
+
+-- Quarry
+Patterns.quarry(options: table) -> boolean
+-- Options: {
+--   width: number (16),
+--   length: number (16),
+--   depth: number? (nil = to bedrock),
+--   return_home: boolean (true)
+-- }
+
+-- 3x3 Tunnel
+Patterns.tunnel3x3(options: table) -> boolean
+-- Options: {
+--   length: number (50),
+--   torch_interval: number (8),
+--   support_interval: number (16),
+--   return_home: boolean (true)
+-- }
+
+-- Adaptive Mining
+Patterns.adaptiveMine(options: table) -> boolean
+-- Options: {
+--   target_ore: string?,
+--   max_blocks: number (1000),
+--   base_pattern: string ("branch"),
+--   return_home: boolean (true)
+-- }
+
+-- Pattern management
+Patterns.getAvailablePatterns() -> table
+-- Returns array of {type, name, description}
+
+Patterns.getStats() -> table
+-- Returns current pattern statistics
+
+Patterns.stop() -> boolean
+-- Stops current pattern
+
+Patterns.resume() -> boolean
+-- Resumes interrupted pattern (not fully implemented)
+
+-- Shutdown
+Patterns.shutdown() -> boolean
+```
+
+### Optimization Module (`turtle.modules.optimization`)
+
+Handles mining optimization and efficiency tracking.
+
+```lua
+-- Initialize optimization
+Optimization.init() -> boolean, string
+
+-- Ore vein following
+Optimization.followOreVein(ore_type: string?, options: table?) -> boolean, table (vein_data)
+-- Options: {
+--   max_blocks: number (64),
+--   search_radius: number (1),
+--   prioritize_clusters: boolean (true)
+-- }
+
+-- Y-level optimization
+Optimization.getOptimalYLevel(ore_type: string) -> number, table (ore_data)
+-- Returns optimal Y and full ore data
+
+Optimization.isYLevelOptimal(ore_type: string, current_y: number, tolerance: number?) -> boolean, string
+-- Checks if current Y is optimal for ore
+
+Optimization.calculateBestYLevel(ore_types: table) -> number
+-- Calculates best Y for multiple ore types
+
+-- Pattern efficiency
+Optimization.trackPatternEfficiency(pattern_name: string, stats: table) -> table (efficiency)
+-- Updates and returns efficiency metrics
+
+Optimization.recommendPattern(target: table) -> table
+-- Returns pattern recommendations
+-- Target: {ore_type: string?, area: table?, exploration: boolean?}
+
+-- Ore prediction
+Optimization.predictOreLocations(current_pos: table, ore_type: string, radius: number?) -> table
+-- Returns predicted ore locations with confidence scores
+
+-- Dynamic adjustment
+Optimization.adjustPattern(current_pattern: table, real_time_stats: table) -> table
+-- Returns pattern adjustments based on real-time data
+
+-- Statistics
+Optimization.getStats() -> table
+-- Returns comprehensive optimization statistics
+
+Optimization.clearData() -> boolean
+-- Clears all optimization data
+
+-- Shutdown
+Optimization.shutdown() -> boolean
 ```
 
 ### Safety Module (`turtle.modules.safety`)
