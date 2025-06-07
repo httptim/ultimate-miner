@@ -4,6 +4,10 @@
 -- Bootstrap the module loader
 local module_loader = require("/shared/module_loader")
 
+-- Initialize error handling
+local ErrorHandler = require("shared.error_handler")
+ErrorHandler.setupGlobalHandler()
+
 -- Initialize program environment
 print("Ultimate Miner v3.0.0 - Turtle")
 print("Initializing...")
@@ -226,7 +230,8 @@ local function showMenu()
     print("3. Test Movement")
     print("4. View Statistics")
     print("5. Network Control Mode")
-    print("6. Exit")
+    print("6. Error Report")
+    print("7. Exit")
     print()
     write("Select option: ")
     
@@ -499,6 +504,8 @@ local function main()
         elseif choice == 5 then
             networkMode()
         elseif choice == 6 then
+            ErrorHandler.createErrorReport()
+        elseif choice == 7 then
             running = false
         else
             print("Invalid choice")

@@ -312,6 +312,28 @@ If you see errors like "syntax error near 'end'" or "module not found":
 ### Installer loops after creating startup
 This is a known issue that has been fixed. The installer now properly reboots after successful installation.
 
+### Reporting Errors
+If you encounter errors that you cannot see completely:
+
+**On Turtle:**
+1. Select option `6` from the main menu (Error Report)
+2. The system will automatically upload errors to pastebin
+3. You'll receive a pastebin code to share when reporting issues
+
+**On Control Computer:**
+1. Select "Error Report" from the dashboard
+2. Follow the same process as above
+
+**Alternative Methods:**
+- Error logs are saved to `/ultimate_miner_errors.log`
+- Pastebin codes are saved to `/pastebin_info.txt`
+- You can manually run: `lua test_error_reporting.lua`
+
+When reporting issues at https://github.com/httptim/ultimate-miner/issues, include:
+- The pastebin code
+- What you were doing when the error occurred
+- Your Minecraft and CC:Tweaked versions
+
 ## Tips for Success
 
 1. **Start Small**: Test with 1 turtle before scaling up

@@ -173,6 +173,10 @@ function Dashboard.selectMenuItem(index)
     elseif item == "Settings" then
         local Settings = require("control.screens.settings")
         UI.pushScreen(Settings.create())
+    elseif item == "Error Report" then
+        local ErrorHandler = require("shared.error_handler")
+        ErrorHandler.createErrorReport()
+        UI.render()
     elseif item == "Exit" then
         if UI.confirm("Are you sure you want to exit?") then
             Core.emit("exit")

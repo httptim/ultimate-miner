@@ -4,6 +4,10 @@
 -- Bootstrap the module loader
 local module_loader = require("/shared/module_loader")
 
+-- Initialize error handling
+local ErrorHandler = require("shared.error_handler")
+ErrorHandler.setupGlobalHandler()
+
 -- Initialize program environment
 print("Ultimate Miner v3.0.0 - Control Computer")
 print("Initializing...")

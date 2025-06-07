@@ -19,7 +19,9 @@ local components = {
     shared = {
         "shared/constants.lua",
         "shared/circular_buffer.lua",
-        "shared/code_optimizer.lua"
+        "shared/code_optimizer.lua",
+        "shared/error_reporter.lua",
+        "shared/error_handler.lua"
     },
     
     -- Turtle-specific components
