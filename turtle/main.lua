@@ -352,26 +352,38 @@ local function testMovement()
     local old_ticks = ticks_enabled
     ticks_enabled = false
     
-    while true do
+    local exit_menu = false
+    while not exit_menu do
         term.clear()
         term.setCursorPos(1, 1)
         
         print("=== Movement Test ===")
         print()
-        print("Current position: " .. Navigation.formatPosition())
+        
+        -- Safe position formatting
+        local pos_str = "Unknown"
+        local ok = pcall(function()
+            pos_str = Navigation.formatPosition()
+        end)
+        if not ok then
+            pos_str = "Error getting position"
+        end
+        
+        print("Current position: " .. pos_str)
         print("Fuel level: " .. tostring(turtle.getFuelLevel()))
         print()
         print("Options:")
-        print("1. Test basic movements (forward, back, up, down)")
-        print("2. Test turning (left, right, face direction)")
+        print("1. Test basic movements")
+        print("2. Test turning")
         print("3. Test GPS location")
-        print("4. Move to specific coordinates")
+        print("4. Move to coordinates")
         print("5. Return home")
         print("6. Back to menu")
         print()
         write("Select option: ")
         
         local choice = read()
+        choice = tostring(choice):match("^%s*(.-)%s*$") -- Trim whitespace
         
         if choice == "1" then
             print("\nTesting basic movements...")
@@ -459,15 +471,19 @@ local function testMovement()
             end
             
         elseif choice == "6" then
-            ticks_enabled = old_ticks  -- Restore tick state
-            return  -- Exit the loop and return to main menu
+            exit_menu = true
+        else
+            print("\nInvalid option: " .. choice)
         end
         
-        if choice ~= "6" then
+        if not exit_menu then
             print("\nPress any key to continue...")
             os.pullEvent("key")
         end
     end  -- End of while loop
+    
+    -- Restore tick state before returning
+    ticks_enabled = old_ticks
 end
 
 local function viewStatistics()
